@@ -73,8 +73,34 @@ npm --prefix app run build      # type-checks, then builds app/dist
 - The bundle is ~1.1 MB (307 KB gzipped), with maplibre-gl split into its own chunk so a
   content edit does not make the phone re-download the engine.
 
+### Saved plans and profiles (Oct 23, 2026)
+`/plans` lists the trips a profile has saved, `/plans/:id` edits one, `/login` signs in.
+A plan is `{name, days:[{title, date, stops:[{name, lat, lng, icon, time, note, mode}]}]}`
+(`src/lib/plans.ts`); stops carry one of 24 icons (`src/lib/icons.ts`) grouped as stay &
+eat / see / do / outdoors / travel, which is what makes a day readable at a glance.
+
+Editing is on the map, not in a form: a stop comes either from searching (his own trip's
+places first, then Photon) **or** from dropping a pin anywhere, which is the only way to
+put "the taco place by the hotel" on a map. Days are added, renamed, dated and removed;
+stops are reordered with ↑/↓; everything autosaves after 600 ms, because he is editing a
+plan rather than filling in a form.
+
+**The accounts are profiles on the device, not security, and the page says so.** The site
+is static — Vercel serves files, there is nothing to authenticate against. Passwords are
+stretched with PBKDF2-SHA256 (120k iterations, per-account salt) and only the digest is
+stored, so the stored data does not hand anyone a password to reuse; but anyone holding
+the unlocked device can read the plans, and clearing site data deletes them. Plans do not
+sync between devices. Making this real means Vercel KV or Postgres behind serverless
+routes, and only `src/lib/accounts.ts` and `src/lib/plans.ts` change.
+
+The owner's own account (`vsai`) is seeded on first run from a digest computed at build
+time — the password itself is not in the repository and cannot be recovered from the
+digest — and comes with the Vegas trip already saved as a plan, built from the same
+`src/data.json` the `/trip` page reads. The seed runs once; if he edits or deletes that
+plan it stays edited or deleted.
+
 ### Two pages (Oct 23, 2026)
-`/` is the landing map — **every place on the trip highlighted**, plus directions from
+`/` is the landing map (see also "Saved plans and profiles" above) — **every place on the trip highlighted**, plus directions from
 anywhere to anywhere; `/trip` is the day-by-day plan that used to be the landing page.
 `src/App.tsx` is react-router; `vercel.json` rewrites everything except `/assets/*` to
 `index.html` so a deep link to `/trip` works. The brand on `/trip` links back.
