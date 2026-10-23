@@ -90,12 +90,18 @@ put "the taco place by the hotel" on a map. Days are added, renamed, dated and r
 stops are reordered with ↑/↓; everything autosaves after 600 ms, because he is editing a
 plan rather than filling in a form.
 
+Plans are one tap from the landing map: the header's **My plans ▾** menu lists the Vegas
+trip and every saved plan and opens it directly, instead of My plans → the plan → View.
 `/plans/:id/view` reads a plan the way `/trip` reads the Vegas one: only the leg he is on
 drawn on the road in blue with arrows, the figure standing where he is, numbered pins,
 popups carrying each stop's what-to-see and tip, and a next-leg bar with the mode,
 distance, heading, time, Google/Uber/Lyft and "✓ I'm here" (his place is kept per plan and
 day in `np-planprogress`). A **plan picker** sits at the top of both that page and `/trip`,
-so the Vegas itinerary is simply one entry in the list. Legs are routed in the browser and
+so the Vegas itinerary is simply one entry in the list. The viewer also carries the map
+controls (3D, Satellite, Me) and **▶ Play day**: `src/map/useRoadJourney.ts` is the shared
+play-through — it takes a day's legs rather than reading a particular trip, so the built-in
+itinerary (through the thin `useJourney` wrapper) and a plan Sai built himself animate the
+same way, the figure walking the real road with the camera behind him. Legs are routed in the browser and
 cached by `src/lib/planroads.ts`, which both the editor and the viewer share.
 
 **The accounts are profiles on the device, not security, and the page says so.** The site

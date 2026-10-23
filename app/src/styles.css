@@ -560,3 +560,23 @@ h2.planname{margin:0;font:400 16px var(--f-display);color:var(--sand);overflow:h
 .daypick input{width:62px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
   font:700 13px var(--f-mono);padding:9px 8px;border-radius:10px;text-align:center}
 .daypick input:focus{outline:none;border-color:var(--cyan)}
+
+/* The viewer's map controls sit clear of its header, which carries the plan's name. */
+.top.viewtop{justify-content:flex-end;pointer-events:none}
+.top.viewtop .ctrls{pointer-events:auto}
+
+/* Every plan, one tap from the landing map. */
+.planmenu{position:relative;flex:0 0 auto}
+.planmenu .toplan{border:0;cursor:pointer}
+.pmlist{position:absolute;right:0;top:calc(100% + 7px);z-index:9;min-width:min(74vw,290px);
+  display:flex;flex-direction:column;gap:3px;padding:6px;border-radius:13px;
+  border:1px solid var(--line);background:var(--panel-solid);box-shadow:0 16px 36px rgba(0,0,0,.55)}
+.pmlist button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;
+  padding:9px 10px;border:0;border-radius:9px;background:transparent;color:var(--sand);
+  cursor:pointer;text-align:left;font:inherit}
+.pmlist button:active{background:rgba(255,255,255,.08)}
+.pmlist button b{font:800 13px var(--f-body)}
+.pmlist button span{font:700 10px var(--f-mono);color:var(--muted)}
+.pmnone{margin:0;padding:9px 10px;font:600 11.5px var(--f-body);color:var(--muted)}
+.pmmanage{margin-top:2px;padding:9px 10px;border-top:1px solid var(--line);text-decoration:none;
+  font:800 11.5px var(--f-body);color:var(--cyan)}
