@@ -18,9 +18,12 @@ export interface Hit extends Point {
   id?: string;
 }
 
-export function tripHits(q: string, limit = 5): Hit[] {
+/** The trip's own stops, offered only to the profile whose trip it is: to anyone else
+ *  they are just places, and badging them "on your trip" would be a small lie as well as
+ *  a leak of his itinerary. */
+export function tripHits(q: string, limit = 5, mine = false): Hit[] {
   const s = q.trim().toLowerCase();
-  if (!s) return [];
+  if (!s || !mine) return [];
   return Object.entries(places)
     .filter(([, p]) => p.n.toLowerCase().includes(s) || p.q.toLowerCase().includes(s))
     .slice(0, limit)

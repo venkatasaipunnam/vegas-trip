@@ -5,7 +5,7 @@ import type { Point } from "../lib/route";
 /** One end of a journey.  Typing searches the trip's own stops first — they answer
  *  instantly and work with no signal — and then anywhere else through Photon. */
 export default function PlaceField({
-  label, icon, value, onPick, near, onUseLocation, locating,
+  label, icon, value, onPick, near, onUseLocation, locating, mine,
 }: {
   label: string;
   icon: string;
@@ -14,6 +14,8 @@ export default function PlaceField({
   near: LatLng | null;
   onUseLocation?: () => void;
   locating?: boolean;
+  /** Whether this profile owns the built-in trip, and so should be offered its stops. */
+  mine?: boolean;
 }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -23,7 +25,7 @@ export default function PlaceField({
   // Local matches show as you type; the geocoder is given a moment so a four-letter
   // search is one request rather than four.
   useEffect(() => {
-    const local = tripHits(q);
+    const local = tripHits(q, 5, mine);
     setHits(local);
     if (q.trim().length < 3) return;
     const ac = new AbortController();
@@ -36,7 +38,7 @@ export default function PlaceField({
       }
     }, 350);
     return () => { clearTimeout(t); ac.abort(); };
-  }, [q, near]);
+  }, [q, near, mine]);
 
   useEffect(() => {
     const away = (e: PointerEvent) => {

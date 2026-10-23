@@ -74,6 +74,11 @@ npm --prefix app run build      # type-checks, then builds app/dist
   content edit does not make the phone re-download the engine.
 
 ### Saved plans and profiles (Oct 23, 2026)
+`/trip` is **not public**: the Vegas itinerary is Sai's own plan, so `RequireUser`
+redirects a signed-out visitor to `/login` and the landing header only shows the "Vegas
+plan" link to whoever is signed in (signed out it reads "Sign in →"). The landing map
+itself stays open — the route finder is useful to anyone and gives nothing of his away.
+
 `/plans` lists the trips a profile has saved, `/plans/:id` edits one, `/login` signs in.
 A plan is `{name, days:[{title, date, stops:[{name, lat, lng, icon, time, note, mode}]}]}`
 (`src/lib/plans.ts`); stops carry one of 24 icons (`src/lib/icons.ts`) grouped as stay &
@@ -84,6 +89,14 @@ places first, then Photon) **or** from dropping a pin anywhere, which is the onl
 put "the taco place by the hotel" on a map. Days are added, renamed, dated and removed;
 stops are reordered with ↑/↓; everything autosaves after 600 ms, because he is editing a
 plan rather than filling in a form.
+
+`/plans/:id/view` reads a plan the way `/trip` reads the Vegas one: only the leg he is on
+drawn on the road in blue with arrows, the figure standing where he is, numbered pins,
+popups carrying each stop's what-to-see and tip, and a next-leg bar with the mode,
+distance, heading, time, Google/Uber/Lyft and "✓ I'm here" (his place is kept per plan and
+day in `np-planprogress`). A **plan picker** sits at the top of both that page and `/trip`,
+so the Vegas itinerary is simply one entry in the list. Legs are routed in the browser and
+cached by `src/lib/planroads.ts`, which both the editor and the viewer share.
 
 **The accounts are profiles on the device, not security, and the page says so.** The site
 is static — Vercel serves files, there is nothing to authenticate against. Passwords are

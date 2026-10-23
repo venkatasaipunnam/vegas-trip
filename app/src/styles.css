@@ -9,6 +9,9 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--night);color:var(--sand);font-family:var(--f-body);overflow:hidden}
+/* The pages are flex columns that centre their own content; without a height here the
+   percentage below resolves against nothing and a centred card sticks to the top. */
+#root{height:100%}
 #map{position:fixed;inset:0}
 #map .maplibregl-map{position:absolute;inset:0}
 button{font-family:inherit}
@@ -228,8 +231,11 @@ h3{margin:14px 0 8px;font-size:15px}
 .btn.maps{background:linear-gradient(135deg,#fff7ea,#e9ddff)}
 .btn.uber{background:#000;color:#fff}
 .btn.lyft{background:#ff00bf;color:#fff}
-.btn.done{flex:1;font-size:14.5px;background:linear-gradient(135deg,var(--go),var(--cyan));
+/* No flex:1 here — the pages are column flexboxes, and a growing primary button filled
+   a whole page with gradient.  It only shares a row inside .rowdone. */
+.btn.done{font-size:14.5px;background:linear-gradient(135deg,var(--go),var(--cyan));
   box-shadow:0 6px 18px rgba(94,227,154,.3)}
+.rowdone .btn.done{flex:1}
 .btn.ghost{flex:0 0 54px;background:transparent;color:var(--muted);border:1px solid var(--line)}
 .btn.ghost:active{filter:none;background:rgba(255,255,255,.05)}
 .step.walked{opacity:.5}
@@ -348,6 +354,13 @@ h3{margin:14px 0 8px;font-size:15px}
 .result .turns ol{max-height:28vh;overflow-y:auto}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .hint{margin:0;padding:0 4px;font:600 12px/1.5 var(--f-body);color:var(--muted)}
+/* Signed out, the only way in used to be a small link in the corner. */
+.joincard{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;
+  border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px)}
+.joincard p{margin:0;flex:1;min-width:0;font:600 11.5px/1.45 var(--f-body);color:var(--muted)}
+.joincard p b{display:block;font:800 13px var(--f-body);color:var(--sand);margin-bottom:2px}
+.joincard .btn{flex:0 0 auto;white-space:nowrap;min-height:42px}
 
 /* His own position: the same blue as the route it starts from. */
 .livedot{width:16px;height:16px;border-radius:50%;background:#3d8bff;border:2.5px solid #fff;
@@ -374,7 +387,7 @@ h3{margin:14px 0 8px;font-size:15px}
   color:var(--night);font:800 12px var(--f-body)}
 
 /* ---------- Plans: a page rather than a map overlay ---------- */
-.page{position:relative;z-index:8;min-height:100%;max-height:100%;overflow-y:auto;
+.page{position:relative;z-index:8;min-height:100dvh;height:100%;overflow-y:auto;
   -webkit-overflow-scrolling:touch;background:var(--night);
   padding:max(16px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px))
           calc(env(safe-area-inset-bottom,0px) + 26px) max(14px,env(safe-area-inset-left,0px));
@@ -384,7 +397,9 @@ h3{margin:14px 0 8px;font-size:15px}
 .page .sub{margin:3px 0 0;font:700 10.5px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .page .fine{margin:0;font:600 11.5px/1.55 var(--f-body);color:var(--muted)}
 .page .bad{margin:0;font:700 12px var(--f-body);color:var(--maybe)}
-.phead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.phead>div{min-width:0}
+.phead .btn{flex:0 0 auto;white-space:nowrap;min-height:40px;padding:0 14px;font-size:12.5px}
 .card{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:15px;
   border:1px solid var(--line);background:var(--panel)}
 .card.auth{margin:auto 0;max-width:420px;align-self:center;width:100%}
@@ -471,3 +486,77 @@ h3{margin:14px 0 8px;font-size:15px}
 .flinks{display:flex;align-items:center;gap:8px}
 .flinks a{font:800 11.5px var(--f-body);color:var(--cyan);text-decoration:none}
 .flinks a.toplan{color:var(--night)}
+
+.lf textarea{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:600 14px var(--f-body);padding:10px 12px;border-radius:11px;width:100%;resize:vertical}
+.lf textarea:focus{outline:none;border-color:var(--cyan)}
+.hintlabel{font-style:normal;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:5px}
+
+/* Switching plans, on the trip page and in the viewer. */
+.planpick{display:flex;align-items:center;gap:7px;margin:0 0 9px}
+.planpick>span{font:800 9px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.planpick select{flex:1;min-width:0;border:1px solid var(--line);background:rgba(255,255,255,.05);
+  color:var(--sand);font:700 12.5px var(--f-body);padding:8px 10px;border-radius:10px;
+  -webkit-appearance:none;appearance:none}
+.planpick select:focus{outline:none;border-color:var(--cyan)}
+.pacts a{border:1px solid var(--line);color:var(--muted);text-decoration:none;
+  font:700 10.5px var(--f-body);padding:7px 9px;border-radius:9px}
+.headacts{display:flex;gap:6px;flex:0 0 auto}
+h2.planname{margin:0;font:400 16px var(--f-display);color:var(--sand);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.nextbar .mode{color:var(--night)}
+
+/* The start and the destination, marked A and B. */
+.endpin{position:relative;display:flex;align-items:center;gap:6px;pointer-events:none;
+  transform:translateY(-6px)}
+.endpin b{width:26px;height:26px;flex:0 0 auto;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  display:grid;place-items:center;font:800 12px var(--f-body);color:var(--night);
+  border:2px solid rgba(10,7,20,.8);box-shadow:0 4px 12px rgba(0,0,0,.45)}
+.endpin b::after{content:"";position:absolute}
+.endpin.start b{background:var(--go)}
+.endpin.end b{background:#3d8bff;color:#fff}
+.endpin i{font:800 10.5px var(--f-body);font-style:normal;color:var(--sand);background:var(--panel-solid);
+  border:1px solid var(--line);padding:3px 7px;border-radius:7px;white-space:nowrap;max-width:46vw;
+  overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.endpin b>span{transform:rotate(45deg)}
+
+/* Plan chips: a row of buttons, not a select that can disagree with the page. */
+.planpick{display:flex;align-items:center;gap:8px;margin:0 0 10px;min-width:0}
+.planpick>span{flex:0 0 auto;font:800 9px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ppscroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;
+  scrollbar-width:none}
+.ppscroll::-webkit-scrollbar{display:none}
+.ppchip{flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:700 11.5px var(--f-body);padding:7px 11px;border-radius:9px;cursor:pointer;text-decoration:none;
+  max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ppchip[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:transparent}
+.ppchip.ghost{color:var(--cyan)}
+
+/* Sign-in and the new-trip form: the two pages Sai called odd.  Both were a bare form on
+   a dark page; they get a centred card, a proper tab pair, and the small print folded
+   away rather than shouted. */
+.authpage{justify-content:center}
+.authtop{text-align:center;margin-bottom:2px}
+.authtop h1{font-size:23px}
+.tagline{margin:6px 0 0;font:700 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.segmented{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.segmented button{border:0;background:transparent;color:var(--muted);cursor:pointer;
+  font:800 12.5px var(--f-body);padding:9px 8px;border-radius:9px}
+.segmented button[aria-selected="true"]{background:var(--sand);color:var(--night)}
+.fineprint{border-top:1px solid var(--line);padding-top:9px}
+.fineprint summary{cursor:pointer;font:700 11px var(--f-body);color:var(--cyan);list-style:none}
+.fineprint summary::-webkit-details-marker{display:none}
+.fineprint summary::before{content:"ⓘ ";}
+.fineprint p{margin:7px 0 0;font:600 11.5px/1.55 var(--f-body);color:var(--muted)}
+.card.newtrip h2{margin:0;font:400 15px var(--f-display);color:var(--sand)}
+/* One row: the stray number box on a line of its own looked like a mistake. */
+.daypick{display:flex;gap:5px;align-items:center;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.daypick::-webkit-scrollbar{display:none}
+.dp,.daypick input{flex:0 0 auto}
+.dp{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);
+  color:var(--sand);font:800 13px var(--f-body);cursor:pointer}
+.dp.on{background:var(--cyan);color:var(--night);border-color:transparent}
+.daypick input{width:62px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:700 13px var(--f-mono);padding:9px 8px;border-radius:10px;text-align:center}
+.daypick input:focus{outline:none;border-color:var(--cyan)}
