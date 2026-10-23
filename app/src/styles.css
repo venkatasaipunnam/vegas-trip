@@ -90,7 +90,13 @@ h3{margin:14px 0 8px;font-size:15px}
    and relies on its own .maplibregl-marker{position:absolute}.  This stylesheet loads
    after maplibre-gl.css, so a relative here put every pin back in normal flow and each
    one was painted up to 200px BELOW the place it belongs to. */
-.mkwrap{width:34px;height:34px;cursor:pointer;position:absolute;top:0;left:0;will-change:transform}
+/* position:relative, NOT absolute.  In the single-file page this element *was*
+   MapLibre's marker, and taking it out of normal flow is what fixed the pins.  Here it
+   is a CHILD of the marker div, and an absolutely positioned child collapses that div
+   to 0x0 — so translate(-50%,-50%) resolved to nothing and every marker hung down and
+   to the right of its coordinate by its own size, by a distance that changed with the
+   zoom scale.  In flow, the marker div takes this element's size and anchors properly. */
+.mkwrap{width:34px;height:34px;cursor:pointer;position:relative;will-change:transform}
 /* A pin drawn at a fixed pixel size reads as page furniture: zoom out and 26 full-size
    teardrops cover the city. --mks is rewritten from the map's zoom (see setPinScale),
    so a pin grows as you come in and shrinks as you pull back, like a real map label.
@@ -121,7 +127,7 @@ h3{margin:14px 0 8px;font-size:15px}
    so he stays readable on satellite imagery, with his head, arms and legs in their own
    groups so they can move.  Idle: he breathes and sways.  While the next leg is a walk
    his legs and arms swing, so the figure says what he is about to do. */
-.mewrap{width:44px;height:58px;pointer-events:none;will-change:transform;position:absolute;top:0;left:0;z-index:3}
+.mewrap{width:44px;height:58px;pointer-events:none;will-change:transform;position:relative;z-index:3}
 .mescale{position:absolute;inset:0;transform:scale(var(--mks,1));transform-origin:50% 100%}
 /* The figure and the pin now stand on exactly the same coordinate, so the pin he is
    standing at steps back instead of being shoved sideways: nothing has to lie about
@@ -130,7 +136,11 @@ h3{margin:14px 0 8px;font-size:15px}
 .mk.under:hover{opacity:.8}
 /* The figure that plays back a day travels along the road; no standing ring under him. */
 .mewrap.travelling .mering{display:none}
-.me{position:absolute;left:0;right:0;bottom:0;height:100%;display:block}
+/* The drawing's ground line (the ellipse at y=52 of a 54-unit viewBox) ends up about
+   2px above the box's bottom edge once it is scaled to fit.  Dropping the drawing by
+   those 2px puts his feet exactly on the bottom edge, which is both the marker's anchor
+   and .mescale's transform-origin — so the feet stay on the coordinate at every zoom. */
+.me{position:absolute;left:0;right:0;bottom:-2px;height:100%;display:block}
 .me svg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:34px;height:54px;overflow:visible}
 .me .ink,.me .skin{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .me .ink{stroke:#0a0714;stroke-width:7}

@@ -74,6 +74,15 @@ npm --prefix app run build      # type-checks, then builds app/dist
   its direction arrows and marching dashes. Eight dotted lines across the Strip said
   nothing about what to do next. The overnight coach stays as a faint dashed context
   line; everything else is gone until he advances.
+- **Markers are positioned by MapLibre, not by the stylesheet.** `.mkwrap` and `.mewrap`
+  are `position:relative` in the React app. In the single-file page those elements *were*
+  MapLibre's marker and taking them out of flow is what fixed the pins; here they are a
+  **child** of the marker div, and an absolutely positioned child collapses that div to
+  0×0 — so `translate(-50%,-50%)` resolved to nothing and every marker hung down and to
+  the right of its coordinate by its own size, by an amount that changed with the zoom
+  scale. Checked by comparing the figure's feet with the current stop's pin centre at
+  three zooms: dx = dy = 0 at each. `.me` is dropped 2px so the drawing's ground line,
+  not the box edge, is what sits on the point.
 - **The figure stands exactly on the stop.** The old sideways nudge kept him clear of
   the pin but made the two markers disagree about where the stop was — the same
   complaint as a misplaced pin. Now the pin he is standing at fades instead
