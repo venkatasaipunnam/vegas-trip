@@ -97,8 +97,10 @@ drawn on the road in blue with arrows, the figure standing where he is, numbered
 popups carrying each stop's what-to-see and tip, and a next-leg bar with the mode,
 distance, heading, time, Google/Uber/Lyft and "✓ I'm here" (his place is kept per plan and
 day in `np-planprogress`). A **plan picker** sits at the top of both that page and `/trip`,
-so the Vegas itinerary is simply one entry in the list. The viewer also carries the map
-controls (3D, Satellite, Me) and **▶ Play day**: `src/map/useRoadJourney.ts` is the shared
+so the Vegas itinerary is simply one entry in the list. The viewer also carries the
+Walk / Transit / Cab switch (each mode routed for the leg he is on, so the three times sit
+side by side; picking one is an edit to the plan, saved on the stop), the map controls
+(3D, Satellite, Me) and **▶ Play day**: `src/map/useRoadJourney.ts` is the shared
 play-through — it takes a day's legs rather than reading a particular trip, so the built-in
 itinerary (through the thin `useJourney` wrapper) and a plan Sai built himself animate the
 same way, the figure walking the real road with the camera behind him. Legs are routed in the browser and

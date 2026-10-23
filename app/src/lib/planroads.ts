@@ -15,8 +15,8 @@ export const MODE_COLOUR: Record<string, string> = {
 };
 const ROADS = "np-planroads";
 
-export const legKeyOf = (a: Stop, b: Stop) =>
-  `${a.lat},${a.lng}>${b.lat},${b.lng}:${b.mode ?? "walk"}`;
+export const legKeyOf = (a: Stop, b: Stop, mode?: string) =>
+  `${a.lat},${a.lng}>${b.lat},${b.lng}:${mode ?? b.mode ?? "walk"}`;
 
 /** Geometry, distance and time: the viewer's next-leg bar needs all three, and asking
  *  the router twice for the same leg would be wasteful. */
@@ -24,6 +24,61 @@ export interface Road {
   geom: [number, number][];
   km: number;
   min: number;
+}
+
+/** Route one leg in all three modes, so a plan's bar can offer the same choice the
+ *  itinerary's does — the time and distance for walking, riding and a cab side by side,
+ *  rather than only the mode that happens to be saved on the stop.  Transit borrows the
+ *  driving line, which is honest for the Deuce and approximate for anything on rails;
+ *  there is no free transit router to ask. */
+export function useLegModes(a: Stop | undefined, b: Stop | undefined) {
+  const [out, setOut] = useState<Record<string, Road>>({});
+
+  useEffect(() => {
+    setOut({});
+    if (!a || !b) return;
+    const ac = new AbortController();
+    (async () => {
+      for (const mode of ["walk", "cab"] as const) {
+        const k = legKeyOf(a, b, mode);
+        const cached = cachedRoad(k);
+        if (cached) { setOut((p) => ({ ...p, [mode]: cached })); continue; }
+        try {
+          const r = await liveRoute(
+            { lat: a.lat, lng: a.lng, name: a.name },
+            { lat: b.lat, lng: b.lng, name: b.name },
+            mode === "walk" ? "walk" : "car",
+            ac.signal,
+          );
+          const road: Road = { geom: r.geom, km: r.km, min: r.min };
+          putRoad(k, road);
+          setOut((p) => ({ ...p, [mode]: road }));
+        } catch {
+          if (ac.signal.aborted) return;
+        }
+      }
+    })();
+    return () => ac.abort();
+  }, [a?.lat, a?.lng, b?.lat, b?.lng]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  return out;
+}
+
+function cachedRoad(k: string): Road | null {
+  try {
+    return (JSON.parse(localStorage.getItem(ROADS) || "{}") as Record<string, Road>)[k] ?? null;
+  } catch {
+    return null;
+  }
+}
+function putRoad(k: string, road: Road) {
+  try {
+    const all = JSON.parse(localStorage.getItem(ROADS) || "{}");
+    all[k] = road;
+    localStorage.setItem(ROADS, JSON.stringify(all));
+  } catch {
+    /* full or private: it will simply be routed again next time */
+  }
 }
 
 export function usePlanRoads(stops: Stop[]) {
