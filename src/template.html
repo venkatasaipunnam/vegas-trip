@@ -90,13 +90,41 @@ h3{margin:14px 0 8px;font-size:15px}
 .note{font-size:12px;color:var(--muted)}
 
 /* markers */
-.mk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:800 12px var(--f-mono);color:var(--night);
-  border:3px solid #130f22;box-shadow:0 0 0 2px rgba(255,255,255,.8),0 0 18px currentColor;cursor:pointer;position:relative}
-.mk::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid currentColor;animation:ping 2.2s ease-out infinite;pointer-events:none}
+/* Teardrop pin carrying an icon for what the place is. MapLibre writes its own
+   transform onto the element it is given, so the pin lives in a wrapper and does
+   its rotating there. The pin is 34px square; rotating it -45deg puts the square
+   corner 24px below centre, so translateY(-24px) lands that tip on the coordinate. */
+.mkwrap{width:34px;height:34px;cursor:pointer;position:relative}
+.mk{position:absolute;inset:0;border-radius:50% 50% 50% 0;transform:translateY(-24px) rotate(-45deg);
+  display:grid;place-items:center;color:#0a0714;
+  background:linear-gradient(145deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 58%),var(--cbg);
+  backdrop-filter:blur(7px) saturate(150%);-webkit-backdrop-filter:blur(7px) saturate(150%);
+  border:1.5px solid rgba(255,255,255,.72);
+  box-shadow:0 0 0 2px rgba(10,7,20,.82),inset 0 1px 0 rgba(255,255,255,.55),
+    0 6px 14px rgba(0,0,0,.45),0 0 18px var(--c)}
+.mk svg{width:18px;height:18px;transform:rotate(45deg);fill:none;stroke:currentColor;
+  stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.85))}
+/* Only the stop you are looking at pulses; a ring on every stop at once is noise. */
+.mk.active::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--c);animation:ping 2.2s ease-out infinite;pointer-events:none}
 @keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.2);opacity:0}}
-.mk.dim{opacity:.35;transform:scale(.75)}
-.mk.dim::after{display:none}
-.mk.dot{width:20px;height:20px;font-size:0}
+.mk.dim{opacity:.72;transform:translateY(-17px) rotate(-45deg) scale(.72)}
+.mk.dim svg{stroke-width:2.8}
+
+/* legend */
+.legend{position:fixed;left:10px;bottom:calc(var(--sheet-h) + 14px);z-index:5;pointer-events:auto;
+  background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);
+  border-radius:12px;padding:9px 11px;box-shadow:0 6px 18px rgba(0,0,0,.35);max-width:min(78vw,280px);
+  max-height:min(52vh,330px);overflow:auto}
+.legend[hidden]{display:none}
+.legend h2{margin:0 0 6px;font:800 10px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.legend li{display:flex;align-items:center;gap:6px;font:600 10.5px var(--f-body);color:var(--sand)}
+.legend ul.two{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
+.legend i{width:11px;height:11px;border-radius:50%;flex:0 0 auto;border:2px solid #130f22;box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+.legend svg{width:13px;height:13px;flex:0 0 auto;fill:none;stroke:var(--sand);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.legend h2+ul{margin-bottom:8px}
+@media (min-width:900px){.legend{left:auto;right:10px;bottom:14px;max-width:300px}}
 
 /* popup */
 .maplibregl-popup-content{background:var(--panel-solid);color:var(--sand);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:var(--f-body)}
@@ -122,7 +150,7 @@ h3{margin:14px 0 8px;font-size:15px}
   .grab{display:none}
   .tabs{padding-top:12px}
 }
-@media (prefers-reduced-motion:reduce){.mk::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.mk.active::after{animation:none}}
 </style>
 </head>
 <body>
@@ -134,8 +162,23 @@ h3{margin:14px 0 8px;font-size:15px}
     <button class="ctl" id="b3d" aria-pressed="true">3D</button>
     <button class="ctl" id="bsat" aria-pressed="false">Satellite</button>
     <button class="ctl" id="bme">Me</button>
+    <button class="ctl" id="ball" aria-pressed="false">All stops</button>
+    <button class="ctl" id="bkey" aria-pressed="false">Key</button>
   </div>
 </div>
+
+<aside class="legend" id="legend" hidden>
+  <h2>Pin shows what it is</h2>
+  <ul class="two" id="legIcons"></ul>
+  <h2>Colour shows where</h2>
+  <ul class="two">
+    <li><i style="background:#ff4fa3"></i>Las Vegas</li>
+    <li><i style="background:#3fe0e8"></i>Los Angeles</li>
+    <li><i style="background:#ffb547"></i>Day trip</li>
+    <li><i style="background:#c9b6ff"></i>Your hotel</li>
+    <li><i style="background:#a89cc8"></i>If time</li>
+  </ul>
+</aside>
 
 <div class="nomap" id="nomap" hidden><b>The live 3D map can't load in this preview.</b> Open the page from its web link to get it. Your full plan is below, and every stop has buttons that open Google Maps, Apple Maps or 3D.</div>
 <section class="sheet" id="sheet">
@@ -153,6 +196,46 @@ h3{margin:14px 0 8px;font-size:15px}
 const DATA=__DATA__;
 const {P,DAYS,CATS,RIDES,LACARDS,AZCARDS}=DATA;
 const CITYCOL={lv:"#ff4fa3",la:"#3fe0e8",az:"#ffb547"};
+const sv=d=>`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const tint=(hex,a)=>{const n=parseInt(hex.slice(1),16);
+  return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
+const ICONS={
+  stay:sv('<path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/>'),
+  see:sv('<path d="m12 3 2.9 5.9 6.1.9-4.4 4.3 1 6.1-5.6-2.9-5.6 2.9 1-6.1L3 9.8l6.1-.9L12 3z"/>'),
+  show:sv('<path d="M2 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><path d="M13 5v14"/>'),
+  free:sv('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>'),
+  park:sv('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>'),
+  beach:sv('<path d="M12 10V2M5 11l1.5 1.5M2 18h2M20 18h2M17.5 12.5 19 11M22 22H2M16 6l-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/>'),
+  nature:sv('<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>'),
+  travel:sv('<path d="m3 11 19-9-9 19-2-8-8-2z"/>'),
+  extra:sv('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')
+};
+/* "free" alone covers 9 places, so the landmarks get their own icon and only the
+   leftovers fall back to the category above. */
+const PLACEICONS={
+  airport:sv('<path d="m22 2-7 20-4-9-9-4 20-7z"/>'),
+  dtla:sv('<path d="M4 17V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9M2 17h20M4 11h16M8 6v5M16 6v5"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/>'),
+  sphere:sv('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>'),
+  highroller:sv('<circle cx="12" cy="10" r="6"/><path d="M12 4v12M6 10h12M8.2 5.8l7.6 8.4M15.8 5.8 8.2 14.2M12 16l-4 6M12 16l4 6"/>'),
+  bellagio:sv('<path d="M12 22a6 6 0 0 0 6-6c0-4-6-10-6-10S6 12 6 16a6 6 0 0 0 6 6z"/>'),
+  caesars:sv('<path d="M6 2 4 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-2-4H6zM4 6h16M16 10a4 4 0 0 1-8 0"/>'),
+  venetian:sv('<path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10h20L12 3 2 10z"/>'),
+  wynn:sv('<path d="m12 3 1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3z"/><path d="m19 15 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/>'),
+  south:sv('<path d="M3 21h18M5 21V7l6-4v18M11 21V11h8v10M14 14h2M14 17h2"/>'),
+  welcome:sv('<path d="M12 2v20M5 6h14l2 3-2 3H5z"/>'),
+  fremont:sv('<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>'),
+  strat:sv('<path d="M12 2v20M7 22l5-20 5 20M8.5 12h7M6.5 17h11"/>'),
+  paris:sv('<path d="M12 2v20M7 22l5-20 5 20M8.5 12h7M6.5 17h11"/>'),
+  lvcity:sv('<path d="m12 3 1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3z"/>'),
+  lacity:sv('<path d="M12 22V10M12 10c0-3 3-5 6-4-1 3-3 4-6 4zm0 0c0-3-3-5-6-4 1 3 3 4 6 4zM3 19c2 1 3 1 4.5 0s2.5-1 4.5 0 3 1 4.5 0 2.5-1 4.5 0"/>'),
+  sevenmm:sv('<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/>'),
+  hoover:sv('<path d="M3 7c6 0 6 4 9 4s3-4 9-4M3 13c6 0 6 4 9 4s3-4 9-4M3 19c6 0 6 3 9 3"/>'),
+  universal:sv('<path d="M4 11h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9zM4 11 3 6l17-3 1 5M9.5 5.2 8 10.4M14.5 4.3 13 9.5"/>'),
+  sign:sv('<path d="M4 7V5h16v2M9 19h6M12 5v14"/>'),
+  griffith:sv('<path d="M4 20h16M6 20a6 6 0 0 1 12 0M12 8V4M10 6h4"/>'),
+  promenade:sv('<path d="M4 9h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9zM3 9l2-5h14l2 5M9 21v-7h6v7"/>'),
+  venice:sv('<path d="M12 22V10M12 10c0-3 3-5 6-4-1 3-3 4-6 4zm0 0c0-3-3-5-6-4 1 3 3 4 6 4zM3 19c2 1 3 1 4.5 0s2.5-1 4.5 0 3 1 4.5 0 2.5-1 4.5 0"/>')
+};
 const ROUTES={
  d25:[[36.12,-115.17],[35.6,-115.4],[35.27,-116.07],[34.9,-117.02],[34.5,-117.4],[34.1,-117.6],[34.0562,-118.2365]],
  d31:[[36.1361,-115.1522],[36.016,-114.7377],[35.59,-114.27],[35.8,-113.95],[36.0119,-113.8108]],
@@ -162,6 +245,7 @@ const ZOOM={lv:16.6,la:15.6,trip:14.2};
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const places=Object.fromEntries(Object.entries(P).filter(([,p])=>!p.goto));
 let day="d24", flying=false, popup=null, markers=[], is3d=true, isSat=false;
+let markerEls={}, showAll=false, activeId=null;
 
 /* ---------- Map ---------- */
 let map=null,geo=null;
@@ -243,6 +327,12 @@ function setSat(on){
 document.getElementById("b3d").onclick=()=>set3d(!is3d);
 document.getElementById("bsat").onclick=()=>setSat(!isSat);
 document.getElementById("bme").onclick=()=>geo&&geo.trigger();
+document.getElementById("ball").onclick=e=>{showAll=!showAll;
+  e.currentTarget.setAttribute("aria-pressed",showAll);drawMarkers()};
+document.getElementById("legIcons").innerHTML=Object.entries(CATS)
+  .map(([k,[label]])=>`<li>${ICONS[k]||ICONS.see}${label}</li>`).join("");
+document.getElementById("bkey").onclick=e=>{const l=document.getElementById("legend");
+  l.hidden=!l.hidden;e.currentTarget.setAttribute("aria-pressed",!l.hidden)};
 
 /* ---------- Helpers ---------- */
 function stopsOf(d){const out=[];d.steps.forEach(s=>{const id=s[1];if(id&&places[id]&&out[out.length-1]!==id)out.push(id)});return out}
@@ -263,7 +353,7 @@ function openPop(id){
 }
 function focus(id,opts={}){
   const p=places[id];if(!map)return Promise.resolve();const z=ZOOM[p.v]||15;
-  focusNature=(p.cat==="nature"||p.cat==="free"&&p.v==="trip");camStart();
+  focusNature=(p.cat==="nature"||p.cat==="free"&&p.v==="trip");camStart();setActive(id);
   document.querySelectorAll(".step").forEach(s=>s.classList.toggle("on",s.dataset.id===id));
   return new Promise(res=>{
     // The canyon only reads as a canyon from far enough back and looking north-east
@@ -279,21 +369,35 @@ function linkRow(id){const p=places[id],ll=p.lat+","+p.lng;
   return `<span class="lk"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}" target="_blank" rel="noopener">Map</a><a href="https://www.google.com/maps/dir/?api=1&destination=${ll}&travelmode=transit" target="_blank" rel="noopener">Directions</a><a href="https://maps.apple.com/?daddr=${ll}&dirflg=r" target="_blank" rel="noopener">Apple</a><a class="e" href="https://earth.google.com/web/search/${encodeURIComponent(p.q)}" target="_blank" rel="noopener">3D</a></span>`}
 /* ---------- Markers & day ---------- */
 function drawMarkers(){
-  if(!map)return;markers.forEach(m=>m.remove());markers=[];
+  if(!map)return;markers.forEach(m=>m.remove());markers=[];markerEls={};
   const D=DAYS.find(d=>d.id===day);const stops=D?stopsOf(D):[];
   Object.entries(places).forEach(([id,p])=>{
-    const i=stops.indexOf(id);const el=document.createElement("div");
+    const i=stops.indexOf(id);
+    // Off-day places are clutter on a phone (up to 26 anonymous dots against 2 real
+    // stops), so they only appear when "All stops" is on.
+    if(i<0&&!showAll)return;
     const col=p.cat==="stay"?"#c9b6ff":p.cat==="extra"?"#a89cc8":(p.v==="la"?CITYCOL.la:p.v==="trip"?CITYCOL.az:CITYCOL.lv);
-    el.className="mk"+(i<0?" dim dot":"");el.style.background=col;el.style.color=col;
-    el.textContent=i>=0?i+1:"";el.title=p.n;
-    el.addEventListener("click",e=>{e.stopPropagation();stopFly();focus(id)});
-    markers.push(new maplibregl.Marker({element:el}).setLngLat([p.lng,p.lat]).addTo(map));
+    const wrap=document.createElement("div");wrap.className="mkwrap";wrap.title=p.n;
+    const el=document.createElement("div");
+    el.className="mk"+(i<0?" dim":"")+(id===activeId?" active":"");
+    el.style.setProperty("--c",col);el.style.setProperty("--cbg",tint(col,.74));
+    el.innerHTML=PLACEICONS[id]||ICONS[p.cat]||ICONS.see;
+    wrap.appendChild(el);
+    wrap.addEventListener("click",e=>{e.stopPropagation();stopFly();focus(id)});
+    markerEls[id]=el;
+    markers.push(new maplibregl.Marker({element:wrap}).setLngLat([p.lng,p.lat]).addTo(map));
+    // Marker() stamps its own aria-label ("Map marker"), so name it afterwards.
+    wrap.setAttribute("aria-label",(i>=0?(i+1)+". ":"")+p.n);
   });
+}
+function setActive(id){
+  activeId=id;
+  Object.entries(markerEls).forEach(([k,el])=>el.classList.toggle("active",k===id));
 }
 function selectDay(id,first){
   day=id;stopFly();if(popup)popup.remove();
   if(!map){renderDays();return}
-  focusNature=false;camStart();
+  focusNature=false;camStart();activeId=null;
   document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.d===id));
   const D=DAYS.find(d=>d.id===id);const stops=stopsOf(D);
   const c=CITYCOL[D.city];
