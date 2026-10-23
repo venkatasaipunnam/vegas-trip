@@ -760,6 +760,12 @@
    "steps": [
     [
      "9:00 PM",
+     "fontainebleau",
+     "Out after work. Walk to the Sahara monorail station (about 8 min).",
+     "Monorail · $13.95 online"
+    ],
+    [
+     "9:20",
      "highroller",
      "Monorail from Sahara station to Harrah's/The LINQ.",
      "~10 min"
@@ -782,7 +788,7 @@
      "11:30",
      "fontainebleau",
      "Monorail back (runs until 2 AM).",
-     ""
+     "Monorail"
     ]
    ]
   },
@@ -808,12 +814,18 @@
    "steps": [
     [
      "9:00 PM",
+     "fontainebleau",
+     "Out after work. The Deuce stops on Las Vegas Blvd right outside.",
+     "Deuce · $8 24 h pass"
+    ],
+    [
+     "9:25",
      "fremont",
      "Deuce north to Fremont Street Experience.",
      "~20 min"
     ],
     [
-     "9:30",
+     "9:40",
      "fremont",
      "Canopy light shows, old casinos, live music on the street.",
      ""
@@ -822,7 +834,7 @@
      "11:30",
      "fontainebleau",
      "Deuce back; it runs 24 hours.",
-     ""
+     "Deuce"
     ]
    ]
   },

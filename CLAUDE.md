@@ -57,7 +57,11 @@ npm --prefix app run build      # type-checks, then builds app/dist
   (`np-progress`, `np-mode`), so a phone that already has his place in the day keeps it.
 - **One copy of the trip content.**  `vite.config.ts` aliases `@trip` to the repo's
   `src/`, so the app imports `src/data.json` and `src/routes.json` directly; the Python
-  scripts and the classic page read the same files.  `src/types.ts` types them, which is
+  scripts and the classic page read the same files.  The alias is resolved from
+  `process.cwd()`, **not** from `import.meta.url`: Vite bundles the config to a temporary
+  file and may write it to `node_modules/.vite-temp`, where `../src` becomes
+  `app/node_modules/src` and the dev server answers every request with "Failed to resolve
+  import @trip/data.json" and a 500.  It throws if the content is not found.  `src/types.ts` types them, which is
   what turns a typo in the plan into a build error instead of a blank screen.
 - **Components:** `map/MapView` (map, terrain, camera, popup, fly-through),
   `map/RouteLayers` (the six route layers + arrows), `map/Pins`, `map/Me` (the figure),
@@ -96,6 +100,11 @@ npm --prefix app run build      # type-checks, then builds app/dist
 - **Uber and Lyft open on the confirm screen.** Both links carry pickup *and* dropoff —
   coordinates, nickname and address — and start from the place's `ent` (the kerb), not
   its pin. Google Directions uses the same two points.
+- **Every day starts where he starts.**  Tue and Wed opened at the attraction, so the
+  only leg drawn was the journey home and the ride out was just text.  Both now begin at
+  Fontainebleau.  (Thu already began at Westgate.)  `exports/Sai-Vegas-LA-Trip-Guide.pdf`
+  still shows the old first steps for those two days — `src/mkpdf.py` needs `reportlab`,
+  which is not installed here.
 - **Buttons:** one full-width primary ("✓ I'm at <stop>"), three equal secondary links
   above it (Drive/Walk/Transit, Uber, Lyft), every target at least 46 px tall.
 
