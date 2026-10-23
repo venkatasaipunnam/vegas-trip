@@ -94,11 +94,13 @@ h3{margin:14px 0 8px;font-size:15px}
    transform onto the element it is given, so the pin lives in a wrapper and does
    its rotating there. The pin is 34px square; rotating it -45deg puts the square
    corner 24px below centre, so translateY(-24px) lands that tip on the coordinate. */
-.mkwrap{width:34px;height:34px;cursor:pointer;position:relative}
+.mkwrap{width:34px;height:34px;cursor:pointer;position:relative;will-change:transform}
+/* No backdrop-filter here: MapLibre moves every marker on every frame of a pinch or
+   zoom, and re-blurring what is behind 20-odd pins each frame is what made them lag
+   behind the map on a phone.  A baked gradient looks the same and costs nothing. */
 .mk{position:absolute;inset:0;border-radius:50% 50% 50% 0;transform:translateY(-24px) rotate(-45deg);
   display:grid;place-items:center;color:#0a0714;
   background:linear-gradient(145deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 58%),var(--cbg);
-  backdrop-filter:blur(7px) saturate(150%);-webkit-backdrop-filter:blur(7px) saturate(150%);
   border:1.5px solid rgba(255,255,255,.72);
   box-shadow:0 0 0 2px rgba(10,7,20,.82),inset 0 1px 0 rgba(255,255,255,.55),
     0 6px 14px rgba(0,0,0,.45),0 0 18px var(--c)}
@@ -110,6 +112,44 @@ h3{margin:14px 0 8px;font-size:15px}
 @keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.2);opacity:0}}
 .mk.dim{opacity:.72;transform:translateY(-17px) rotate(-45deg) scale(.72)}
 .mk.dim svg{stroke-width:2.8}
+
+/* me: the little figure standing on the stop Sai is at right now */
+.mewrap{width:46px;height:52px;pointer-events:none;will-change:transform;position:relative}
+.me{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;color:#0a0714;
+  background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.1) 60%),var(--go);
+  border:2px solid rgba(255,255,255,.85);
+  box-shadow:0 0 0 2px rgba(10,7,20,.8),0 6px 14px rgba(0,0,0,.5),0 0 20px var(--go)}
+.me svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.meshadow{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:22px;height:7px;border-radius:50%;
+  background:rgba(10,7,20,.55);filter:blur(1.5px)}
+.mering{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);width:34px;height:14px;border-radius:50%;
+  border:2px solid var(--go);animation:standing 2.4s ease-out infinite}
+@keyframes standing{from{transform:translateX(-50%) scale(.5);opacity:.85}to{transform:translateX(-50%) scale(1.9);opacity:0}}
+
+/* next-leg bar: where you are, where you go next, and how */
+.nextbar{margin:0 0 10px;padding:10px 11px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(94,227,154,.1),rgba(19,15,34,.65))}
+.nextbar .at{display:flex;align-items:center;gap:7px;font:700 11px var(--f-mono);color:var(--go);
+  letter-spacing:.04em;text-transform:uppercase}
+.nextbar .at svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.nextbar .to{margin:5px 0 0;font-size:14.5px;line-height:1.3}
+.nextbar .to b{color:var(--sand)}
+.nextbar .how{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.mode{display:inline-flex;align-items:center;gap:5px;font:800 10.5px var(--f-mono);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--night);padding:3px 8px;border-radius:6px;margin-top:6px}
+.mode svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.mode.walk{background:var(--go)}.mode.transit{background:var(--cyan)}.mode.cab{background:var(--amber)}
+.go{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.go a,.go button{font:800 12px var(--f-body);text-decoration:none;border:0;cursor:pointer;
+  padding:8px 11px;border-radius:10px;color:var(--night);background:var(--sand)}
+.go a.uber{background:#0a0714;color:#fff;border:1px solid rgba(255,255,255,.35)}
+.go a.lyft{background:#ff00bf;color:#fff}
+.go .done{background:linear-gradient(135deg,var(--go),var(--cyan));box-shadow:0 0 14px rgba(94,227,154,.4)}
+.go .back{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.step.walked{opacity:.5}
+.step.walked .n{background:#3a3160;color:var(--muted)}
+.step.here{border-color:var(--go);box-shadow:0 0 14px rgba(94,227,154,.28)}
 
 /* legend */
 .legend{position:fixed;left:10px;bottom:calc(var(--sheet-h) + 14px);z-index:5;pointer-events:auto;
@@ -137,7 +177,7 @@ h3{margin:14px 0 8px;font-size:15px}
 .pop p b{color:var(--sand)}
 .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .btns a{text-decoration:none;font:700 12px var(--f-body);padding:7px 10px;border-radius:9px;color:var(--night)}
-.b1{background:var(--cyan)}.b2{background:var(--sand)}.b3{background:var(--amber)}
+.b1{background:var(--cyan)}.b2{background:var(--sand)}.b3{background:var(--amber)}.b4{background:var(--go)}
 .maplibregl-ctrl-attrib{font-size:9px}
 .lk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .lk a{font:700 11px var(--f-body);text-decoration:none;color:var(--night);background:var(--cyan);padding:4px 8px;border-radius:7px}
@@ -241,11 +281,24 @@ const ROUTES={
  d31:[[36.1361,-115.1522],[36.016,-114.7377],[35.59,-114.27],[35.8,-113.95],[36.0119,-113.8108]],
  d30:[[36.1361,-115.1522],[36.082,-115.1728],[35.8385,-115.2705]]
 };
+const PERSON=sv('<circle cx="12" cy="4.6" r="2.4"/><path d="M12 7.4v6.4M8.6 10.2 12 8.8l3.4 1.4M9.4 21.5 12 14.6l2.6 6.9"/>');
+const MODEICON={
+  walk:sv('<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-5-2.5-3 .5-4 3 2 2 1M10.5 9 8 11l-1 3"/>'),
+  transit:sv('<rect x="5" y="3" width="14" height="13" rx="2.5"/><path d="M5 11h14M8 20l1.5-4M16 20l-1.5-4"/><circle cx="8.8" cy="13.5" r=".8"/><circle cx="15.2" cy="13.5" r=".8"/>'),
+  cab:sv('<path d="M4 16v3M20 16v3M3 16v-4l2-5h14l2 5v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M5 12h14M9 4h6"/><circle cx="7.5" cy="15.5" r=".9"/><circle cx="16.5" cy="15.5" r=".9"/>')
+};
+const MODENAME={walk:"Walk",transit:"Transit",cab:"Cab"};
 const ZOOM={lv:16.6,la:15.6,trip:14.2};
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const places=Object.fromEntries(Object.entries(P).filter(([,p])=>!p.goto));
 let day="d24", flying=false, popup=null, markers=[], is3d=true, isSat=false;
 let markerEls={}, showAll=false, activeId=null;
+/* Where Sai is standing right now: index into the current day's stop list.  Kept in
+   localStorage so closing Safari mid-day does not lose his place. */
+let atIdx=0, meMarker=null;
+const PROGKEY="np-progress";
+let progress={};try{progress=JSON.parse(localStorage.getItem(PROGKEY))||{}}catch(e){}
+function saveProgress(){progress[day]=atIdx;try{localStorage.setItem(PROGKEY,JSON.stringify(progress))}catch(e){}}
 
 /* ---------- Map ---------- */
 let map=null,geo=null;
@@ -287,8 +340,21 @@ map.on("load",()=>{
   }
   // route
   map.addSource("route",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
-  map.addLayer({id:"route-glow",type:"line",source:"route",paint:{"line-color":["get","c"],"line-width":12,"line-opacity":.25,"line-blur":6}});
-  map.addLayer({id:"route",type:"line",source:"route",layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":3.5,"line-dasharray":[1,2]}});
+  // Only ["get"] of a colour survives MapLibre's paint validation without an error
+  // event, so width and opacity stay constant per layer and the state of a leg is
+  // carried by its colour plus the highlight layer below.
+  map.addLayer({id:"route-glow",type:"line",source:"route",layout:{"line-cap":"round"},
+    paint:{"line-color":["get","c"],"line-width":13,"line-opacity":.2,"line-blur":6}});
+  map.addLayer({id:"route-now",type:"line",source:"route",filter:["==",["get","st"],"now"],
+    layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":7,"line-opacity":.35,"line-blur":1}});
+  // line-dasharray takes no data-driven expression, so each travel mode is its own
+  // filtered layer: round dots for walking, dashes for transit, a solid road for cabs.
+  map.addLayer({id:"route-walk",type:"line",source:"route",filter:["==",["get","m"],"walk"],
+    layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":4.4,"line-dasharray":[0,1.7]}});
+  map.addLayer({id:"route-transit",type:"line",source:"route",filter:["==",["get","m"],"transit"],
+    layout:{"line-cap":"butt"},paint:{"line-color":["get","c"],"line-width":3.2,"line-dasharray":[2.2,1.4]}});
+  map.addLayer({id:"route-cab",type:"line",source:"route",filter:["==",["get","m"],"cab"],
+    layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":3.6}});
   set3d(true);
   selectDay(day,true);
 });
@@ -335,7 +401,27 @@ document.getElementById("bkey").onclick=e=>{const l=document.getElementById("leg
   l.hidden=!l.hidden;e.currentTarget.setAttribute("aria-pressed",!l.hidden)};
 
 /* ---------- Helpers ---------- */
-function stopsOf(d){const out=[];d.steps.forEach(s=>{const id=s[1];if(id&&places[id]&&out[out.length-1]!==id)out.push(id)});return out}
+/* The step that introduces a stop also says how you get to it (s[3]) and whether it
+   is a cab (s[4]), so legs and stops come out of the same walk over the day. */
+function legsOf(d){const out=[];d.steps.forEach(s=>{const id=s[1];
+  if(id&&places[id]&&(!out.length||out[out.length-1].id!==id))out.push({id,how:s[3]||"",cab:!!s[4]})});return out}
+function stopsOf(d){return legsOf(d).map(l=>l.id)}
+function km(a,b){const R=6371,r=Math.PI/180,dla=(b.lat-a.lat)*r,dlo=(b.lng-a.lng)*r;
+  const h=Math.sin(dla/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dlo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h))}
+/* How Sai actually covers a leg: what the plan says first, distance only as a fallback. */
+function modeOf(leg,fromId,toId){
+  const h=(leg&&leg.how||"").toLowerCase();
+  if(leg&&leg.cab||/\b(cab|taxi|uber|lyft|rideshare|drive|tour bus|pickup)\b/.test(h))return "cab";
+  if(/walk|stroll|on foot|steps/.test(h))return "walk";
+  if(/bus|deuce|monorail|metro|tram|train|shuttle|line|airport|flight|fly/.test(h))return "transit";
+  return km(places[fromId],places[toId])<1.1?"walk":"transit";
+}
+function minsOf(mode,fromId,toId){const d=km(places[fromId],places[toId]);
+  const speed=mode==="walk"?4.6:mode==="cab"?34:22;return Math.max(2,Math.round(d/speed*60))}
+const gdir=(a,b,m)=>`https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=${m}`;
+const uberURL=(a,b)=>`https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${a.lat}&pickup[longitude]=${a.lng}&pickup[nickname]=${encodeURIComponent(a.n)}&dropoff[latitude]=${b.lat}&dropoff[longitude]=${b.lng}&dropoff[nickname]=${encodeURIComponent(b.n)}`;
+const lyftURL=(a,b)=>`https://lyft.com/ride?id=lyft&pickup[latitude]=${a.lat}&pickup[longitude]=${a.lng}&destination[latitude]=${b.lat}&destination[longitude]=${b.lng}`;
 function sheetPad(){const w=innerWidth;if(w>=900)return{top:110,bottom:60,left:440,right:60};const h=document.getElementById("sheet").getBoundingClientRect().height;return{top:110,bottom:h+30,left:40,right:60}}
 function popHTML(id){
   const p=places[id];const[cn,cc]=CATS[p.cat];const ll=p.lat+","+p.lng;
@@ -344,12 +430,16 @@ function popHTML(id){
   ${p.how?`<p><b>Get there:</b> ${esc(p.how)}</p>`:""}<p><b>Tip:</b> ${esc(p.tip)}</p>
   <div class="btns"><a class="b1" href="https://www.google.com/maps/dir/?api=1&destination=${ll}&travelmode=transit" target="_blank" rel="noopener">Directions</a>
   <a class="b2" href="https://maps.apple.com/?daddr=${ll}&dirflg=r" target="_blank" rel="noopener">Apple Maps</a>
-  <a class="b3" href="https://earth.google.com/web/search/${encodeURIComponent(p.q)}" target="_blank" rel="noopener">Earth 3D</a></div></div>`;
+  <a class="b3" href="https://earth.google.com/web/search/${encodeURIComponent(p.q)}" target="_blank" rel="noopener">Earth 3D</a>
+  ${(()=>{const si=stopsOf(DAYS.find(d=>d.id===day)).indexOf(id);
+    return si>=0&&si!==atIdx?`<a class="b4" href="#" data-at="${si}">\u2713 I'm here</a>`:""})()}</div></div>`;
 }
 function openPop(id){
   if(popup)popup.remove();
   const p=places[id];
   popup=new maplibregl.Popup({offset:22,maxWidth:"290px",focusAfterOpen:false}).setLngLat([p.lng,p.lat]).setHTML(popHTML(id)).addTo(map);
+  const at=popup.getElement().querySelector("[data-at]");
+  if(at)at.onclick=e=>{e.preventDefault();setAt(+at.dataset.at,false);openPop(id)};
 }
 function focus(id,opts={}){
   const p=places[id];if(!map)return Promise.resolve();const z=ZOOM[p.v]||15;
@@ -396,15 +486,12 @@ function setActive(id){
 }
 function selectDay(id,first){
   day=id;stopFly();if(popup)popup.remove();
+  const D=DAYS.find(d=>d.id===id);const stops=stopsOf(D);
+  atIdx=Math.max(0,Math.min(progress[id]||0,Math.max(0,stops.length-1)));
   if(!map){renderDays();return}
   focusNature=false;camStart();activeId=null;
   document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.d===id));
-  const D=DAYS.find(d=>d.id===id);const stops=stopsOf(D);
-  const c=CITYCOL[D.city];
-  const feats=[];
-  if(stops.length>1)feats.push({type:"Feature",properties:{c},geometry:{type:"LineString",coordinates:stops.map(s=>[places[s].lng,places[s].lat])}});
-  if(ROUTES[id])feats.push({type:"Feature",properties:{c:"#c9b6ff"},geometry:{type:"LineString",coordinates:ROUTES[id].map(([a,b])=>[b,a])}});
-  if(map&&map.getSource("route"))map.getSource("route").setData({type:"FeatureCollection",features:feats});
+  drawRoute();placeMe();
   drawMarkers();renderDays();
   const pts=[...stops.map(s=>[places[s].lng,places[s].lat]),...(ROUTES[id]&&id!=="d25"?ROUTES[id].map(([a,b])=>[b,a]):[])];
   const lv=stops.filter(s=>places[s].v==="lv").map(s=>[places[s].lng,places[s].lat]);
@@ -413,6 +500,67 @@ function selectDay(id,first){
     const b=use.reduce((b,p)=>b.extend(p),new maplibregl.LngLatBounds(use[0],use[0]));
     map.fitBounds(b,{padding:sheetPad(),pitch:is3d?55:0,bearing:-25,duration:first?0:2200,maxZoom:15.5});
   }
+}
+
+/* ---------- Where Sai is standing, and how he gets to the next stop ---------- */
+const ROUTEMODE={d25:"transit",d31:"cab",d30:"cab"};
+/* Legs behind him go grey, the leg he is on is gold, the rest keep the city colour. */
+function drawRoute(){
+  if(!map||!map.getSource("route"))return;
+  const D=DAYS.find(d=>d.id===day),stops=stopsOf(D),legs=legsOf(D),c=CITYCOL[D.city];
+  const feats=[];
+  for(let i=0;i<stops.length-1;i++){
+    const a=places[stops[i]],b=places[stops[i+1]];
+    const m=modeOf(legs[i+1],stops[i],stops[i+1]);
+    const st=i<atIdx?"done":i===atIdx?"now":"next";
+    feats.push({type:"Feature",properties:{m,st,
+      c:st==="done"?"#5b4f85":st==="now"?"#ffd166":c},
+      geometry:{type:"LineString",coordinates:[[a.lng,a.lat],[b.lng,b.lat]]}});
+  }
+  if(ROUTES[day])feats.push({type:"Feature",properties:{m:ROUTEMODE[day]||"transit",st:"next",c:"#c9b6ff"},
+    geometry:{type:"LineString",coordinates:ROUTES[day].map(([a,b])=>[b,a])}});
+  map.getSource("route").setData({type:"FeatureCollection",features:feats});
+}
+function placeMe(){
+  if(!map)return;
+  const stops=stopsOf(DAYS.find(d=>d.id===day));
+  if(!stops.length){if(meMarker){meMarker.remove();meMarker=null}return}
+  const p=places[stops[Math.min(atIdx,stops.length-1)]];
+  if(!meMarker){
+    const w=document.createElement("div");w.className="mewrap";
+    w.innerHTML='<div class="mering"></div><div class="meshadow"></div><div class="me">'+PERSON+'</div>';
+    // anchor:"bottom" puts his feet on the coordinate instead of his waist, and the
+    // nudge to the right keeps him from standing inside the stop's own pin.
+    meMarker=new maplibregl.Marker({element:w,anchor:"bottom",offset:[17,2]}).setLngLat([p.lng,p.lat]).addTo(map);
+    w.setAttribute("aria-label","You are here");
+  }else meMarker.setLngLat([p.lng,p.lat]);
+}
+function setAt(i,fly){
+  const stops=stopsOf(DAYS.find(d=>d.id===day));if(!stops.length)return;
+  atIdx=Math.max(0,Math.min(i,stops.length-1));
+  saveProgress();placeMe();drawRoute();renderDays();
+  if(fly)focus(stops[atIdx]);
+}
+function nextHTML(D,stops,legs){
+  if(!stops.length)return "";
+  const here=places[stops[Math.min(atIdx,stops.length-1)]];
+  const head=`<div class="at">${PERSON}You're at ${esc(here.n)}</div>`;
+  if(atIdx>=stops.length-1)return `<div class="nextbar">${head}
+    <p class="to">Last stop of the day — nothing left to travel to.</p>
+    <div class="go">${atIdx?'<button class="back" data-back>\u21b6 Back a stop</button>':""}<button class="back" data-reset>\u21ba Start of day</button></div></div>`;
+  const to=places[stops[atIdx+1]],leg=legs[atIdx+1];
+  const m=modeOf(leg,stops[atIdx],stops[atIdx+1]),mins=minsOf(m,stops[atIdx],stops[atIdx+1]);
+  const gm=m==="walk"?"walking":m==="cab"?"driving":"transit";
+  return `<div class="nextbar">${head}
+   <p class="to">Next: <b>${esc(to.n)}</b>${leg.how?`<span class="how">${esc(leg.how)}</span>`:""}</p>
+   <span class="mode ${m}">${MODEICON[m]}${MODENAME[m]} \u00b7 ~${mins} min</span>
+   <div class="go">
+    <a href="${gdir(here,to,gm)}" target="_blank" rel="noopener">${m==="walk"?"Walking route":m==="cab"?"Driving route":"Transit route"}</a>
+    <a class="uber" href="${uberURL(here,to)}" target="_blank" rel="noopener">Uber</a>
+    <a class="lyft" href="${lyftURL(here,to)}" target="_blank" rel="noopener">Lyft</a>
+    <button class="done" data-done>\u2713 I'm here</button>
+    ${atIdx?'<button class="back" data-back>\u21b6</button>':""}
+   </div></div>`;
 }
 
 /* ---------- Fly-through ---------- */
@@ -450,11 +598,19 @@ function renderDays(){
   const chips=DAYS.map(d=>`<button class="chip" data-d="${d.id}" aria-pressed="${d.id===day}">${d.short}<small>${d.city==="la"?"LA":d.city==="az"?"AZ":"LV"}</small></button>`).join("");
   const steps=D.steps.map(s=>{
     const id=s[1];const ok=id&&places[id];const i=ok?stops.indexOf(id):-1;
-    return `<li class="step${ok?"":" noplace"}" ${ok?`data-id="${id}"`:""}><span class="n${i<0?" blank":""}" style="${i>=0?`background:${CITYCOL[places[id].v==="la"?"la":places[id].v==="trip"?"az":"lv"]}`:""}">${i>=0?i+1:"·"}</span>
+    return `<li class="step${ok?"":" noplace"}${i>=0&&i<atIdx?" walked":""}${i===atIdx?" here":""}" ${ok?`data-id="${id}"`:""}><span class="n${i<0?" blank":""}" style="${i>=0?`background:${CITYCOL[places[id].v==="la"?"la":places[id].v==="trip"?"az":"lv"]}`:""}">${i>=0?i+1:"·"}</span>
       <span class="t">${esc(s[0])}</span><span class="txt">${esc(s[2])}${s[4]?'<span class="tag cab">CAB</span>':""}${s[5]?'<span class="tag book">BOOK</span>':""}${s[3]?`<span class="how">${esc(s[3])}</span>`:""}${ok?linkRow(id):""}</span></li>`}).join("");
   body.innerHTML=`<div class="chips">${chips}</div>
    <div class="dayhead"><div><h2>${esc(D.title)}</h2><span class="win">${esc(D.win)}</span></div><button class="fly" id="fly">▶ Fly this day</button></div>
+   ${nextHTML(D,stops,legsOf(D))}
    <ol class="steps">${steps}</ol>`;
+  const nb=body.querySelector(".nextbar");
+  if(nb){
+    const d=nb.querySelector("[data-done]"),b=nb.querySelector("[data-back]"),r=nb.querySelector("[data-reset]");
+    if(d)d.onclick=()=>{stopFly();setAt(atIdx+1,true)};
+    if(b)b.onclick=()=>{stopFly();setAt(atIdx-1,true)};
+    if(r)r.onclick=()=>{stopFly();setAt(0,true)};
+  }
   body.querySelectorAll(".chip").forEach(c=>c.onclick=()=>selectDay(c.dataset.d));
   body.querySelectorAll(".step[data-id]").forEach(s=>s.onclick=(e)=>{if(e.target.closest("a")||!map)return;stopFly();if(innerWidth<900)setSheet("small");focus(s.dataset.id)});
   const fb=document.getElementById("fly");if(map){fb.onclick=flyDay;updateFlyBtn()}else fb.hidden=true;

@@ -32,6 +32,24 @@ city views, and it must not be switched on mid-flight:
 - Nature stops also need framing: zoom 12.4 / bearing -35, or the camera faces the flat
   plateau behind the rim instead of the canyon.
 
+## Standing figure, legs and travel mode
+- A green figure (`.mewrap`, marker `anchor:"bottom"`, nudged 17px right of the stop's pin)
+  stands on the stop Sai is at right now. `atIdx` is his index into the day's stop list and
+  is saved in `localStorage["np-progress"]` per day, so closing Safari mid-day keeps his place.
+- The day line is no longer one dashed polyline: `drawRoute()` emits one feature per leg with
+  `m` (walk | transit | cab) and `st` (done | now | next). `line-dasharray` takes no
+  data-driven expression, so there is one layer per mode — round dots for walking, dashes for
+  transit, solid for cab — plus `route-now` as a halo under the leg he is on.
+  Legs behind him turn grey, the current leg gold, later legs keep the city colour.
+- Mode comes from the step that introduces the stop: its cab flag and its "how" text
+  (`modeOf`), falling back to distance (under 1.1 km = walk).
+- The bar above the step list shows where he is, the next stop, the mode and a rough duration,
+  with Google walking/driving/transit directions, Uber and Lyft deep links, "✓ I'm here"
+  (advance, fly to the next stop) and "↶" (back). Any stop's popup also offers "✓ I'm here".
+- Markers carry no `backdrop-filter`: re-blurring 20-odd pins on every frame of a pinch is what
+  made them lag behind the map. The anchoring itself was already correct (pin tip and the
+  figure's feet both sit on the projected ground point at every zoom).
+
 ## Why it's built this way
 - The claude.ai artifact sandbox (and the in-app file preview) **blocks external map tiles, fetch and workers**. That's why the first map was a hand-drawn diagram and why `index.html` showed "Uncaught Error: Script error." in the Claude app preview. The real map only works when the page is served from a normal web URL (GitHub Pages).
 - iPhone's Files app won't run HTML/JS, so the site **must be hosted**.
