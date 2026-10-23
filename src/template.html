@@ -633,7 +633,7 @@ function renderUni(){
   <p class="note">Park closes 6 PM for Halloween Horror Nights (a separate scare event). Use the Universal app for live waits and show times.</p>`;
 }
 function renderTips(){
-  body.innerHTML=`<div class="verdict"><b>Santa Monica sunset: yes, go.</b> Sunset is about 6:05 PM over the Pacific; the pier lights and Ferris wheel switch on as the sky turns orange. Be there by 5:30.</div>
+  body.innerHTML=`<div class="verdict"><b>Santa Monica sunset: yes, go.</b> Sunset is about 6:08 PM over the Pacific; the pier lights and Ferris wheel switch on as the sky turns orange. Be there by 5:30.</div>
   <h3>Getting around</h3>
   <div class="card"><b>The Deuce bus · Vegas</b>Whole Strip to Fremont, 24 hours. $8 for 24 hours, $20 for 3 days, in the rideRTC app.</div>
   <div class="card"><b>Las Vegas Monorail</b>Sahara to MGM Grand, stop at Westgate. 24-hour pass $15. Mon until midnight, Tue–Thu until 2 AM, Fri–Sun until 3 AM.</div>
@@ -642,7 +642,7 @@ function renderTips(){
   <h3>Arizona day</h3>
   ${AZCARDS.map(([h,p,m])=>`<div class="card"><b>${esc(h)} <span class="note">· ${esc(m)}</span></b>${esc(p)}</div>`).join("")}
   <h3>Book this week</h3>
-  <div class="card">✓ Grand Canyon West + Hoover Dam tour with Skywalk (confirm pickup 48 h ahead)<br>✓ The Wizard of Oz at Sphere, Fri Oct 30, 3–4 PM<br>✓ High Roller night ticket, Tue Oct 27<br>✓ rideRTC and Monorail passes<br>✓ Check exactly where your LA bus stops</div>
+  <div class="card">✓ Grand Canyon West + Hoover Dam tour with Skywalk (confirm pickup 48 h ahead)<br>✓ The Wizard of Oz at Sphere, Fri Oct 30, 5 PM show (doors 4:15; no 3–4 PM showing exists — check which time your ticket is for)<br>✓ High Roller night ticket, Tue Oct 27<br>✓ rideRTC and Monorail passes<br>✓ Check exactly where your LA bus stops</div>
   <p class="note">Tip: tap Share → Add to Home Screen to keep this map like an app.</p>`;
 }
 function render(){if(tab==="days")renderDays();else if(tab==="uni")renderUni();else renderTips()}
