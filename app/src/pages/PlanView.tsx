@@ -7,9 +7,9 @@ import Map, {
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import { currentUser } from "../lib/accounts";
-import { getPlan, type Plan, type Stop } from "../lib/plans";
+import { getPlan, savePlan, type Plan, type Stop } from "../lib/plans";
 import { ICON_COLOUR, ICON_LABEL, iconSvg, tint } from "../lib/icons";
-import { MODE_COLOUR, legKeyOf, usePlanRoads } from "../lib/planroads";
+import { legKeyOf, useLegModes, usePlanRoads } from "../lib/planroads";
 import { dirUrl, headingOf, km, kmLabel, minsLabel, rideUrl, roughMins } from "../lib/geo";
 import { arrowImage } from "../map/MapView";
 import { useRoadJourney, type JourneyLeg } from "../map/useRoadJourney";
@@ -35,6 +35,7 @@ export default function PlanView() {
   const nav = useNavigate();
   const ref = useRef<MapRef | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [user, setUser] = useState<string | null>(null);
   const [dayIdx, setDayIdx] = useState(0);
   const [atIdx, setAtIdx] = useState(0);
   const [popId, setPopId] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export default function PlanView() {
   useEffect(() => {
     const u = currentUser();
     if (!u) { nav("/login", { replace: true }); return; }
+    setUser(u);
     const p = getPlan(u, id);
     if (!p) { nav("/plans", { replace: true }); return; }
     setPlan(p);
@@ -107,6 +109,19 @@ export default function PlanView() {
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
     m.fitBounds(b, { padding: { top: 90, bottom: 320, left: 40, right: 40 }, maxZoom: 16, duration: 1200 });
   }, [dayIdx, at, ready, leg, stops, here, next]);
+
+  const alt = useLegModes(here, next);
+  /** Switching the mode is an edit to the plan, not a view setting: the leg is drawn in
+   *  that mode from here on, and the editor shows the same thing. */
+  const setMode = useCallback((m: NonNullable<Stop["mode"]>) => {
+    if (!plan || !user || !next) return;
+    const copy = structuredClone(plan);
+    const stop = copy.days[dayIdx].stops.find((s) => s.id === next.id);
+    if (!stop) return;
+    stop.mode = m;
+    setPlan(copy);
+    savePlan(user, copy);
+  }, [plan, user, next, dayIdx]);
 
   const legs = useMemo<JourneyLeg[]>(() => {
     const out: JourneyLeg[] = [];
@@ -272,9 +287,22 @@ export default function PlanView() {
                     <span className="dir">{kmLabel(dist)} km {headingOf(here as never, next as never)} · ~{minsLabel(mins)}</span>
                     {next.time && <span className="how">{next.time}</span>}
                   </p>
-                  <span className="mode" style={{ background: MODE_COLOUR[mode] }}>
-                    <ModeIcon m={mode} />{MODENAME[mode]}
-                  </span>
+                  {/* The same choice the itinerary offers, with each mode's own time and
+                      distance.  Transit borrows the driving line, so it is marked "~". */}
+                  <div className="picks">
+                    {(["walk", "transit", "cab"] as const).map((x) => {
+                      const d = x === "transit" ? alt.cab : alt[x];
+                      return (
+                        <button key={x} className={`pick ${x}${mode === x ? " on" : ""}`}
+                          aria-pressed={mode === x} onClick={() => setMode(x)}>
+                          <ModeIcon m={x} />
+                          <b>{MODENAME[x]}</b>
+                          <span>{d ? `${x === "transit" ? "~" : ""}${minsLabel(d.min)} · ${kmLabel(d.km)} km` : "…"}</span>
+                          <em>{x === "transit" ? "via the road" : ""}</em>
+                        </button>
+                      );
+                    })}
+                  </div>
                   <div className="go">
                     <div className="row3">
                       <a className="btn maps" target="_blank" rel="noopener"
