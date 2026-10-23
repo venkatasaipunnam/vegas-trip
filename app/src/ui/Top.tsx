@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useTrip } from "../store";
 
 /** Brand and the controls that change what the map shows.  "Me" is the geolocate
@@ -10,10 +11,11 @@ export default function Top() {
 
   return (
     <div className="top">
-      <div className="brand">
+      {/* The brand is the way back to the map you arrive on. */}
+      <Link className="brand" to="/">
         <h1>Neon <span>&amp;</span> Pacific</h1>
-        <small>OCT 24–31 · VEGAS · LA · CANYON</small>
-      </div>
+        <small>← Directions &amp; all stops</small>
+      </Link>
       <div className="ctrls">
         <button className="ctl" aria-pressed={is3d} onClick={() => toggle("is3d")}>3D</button>
         <button className="ctl" aria-pressed={sat} onClick={() => toggle("sat")}>Satellite</button>

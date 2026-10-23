@@ -40,8 +40,10 @@ PLANNED = {
     "d24:2": "walk",      # Wynn back north to Circus Circus
     "d25:3": "walk",      # the pier to Third Street Promenade
     "d26:0": "cab",       # 5:50 AM hotel move with bags
-    "d27:0": "transit",   # monorail back from the LINQ
-    "d28:0": "transit",   # Deuce back from Fremont Street
+    "d27:0": "transit",   # monorail out to the LINQ
+    "d27:1": "transit",   # and back
+    "d28:0": "transit",   # Deuce out to Fremont Street
+    "d28:1": "transit",   # and back
     "d30:1": "cab",       # the cab waited at Seven Magic Mountains and brings him back
     "d30:2": "transit",
     "d31:0": "cab",       # the Grand Canyon tour coach
@@ -58,7 +60,8 @@ RAIL = {
     "d25:1": [("metroB", "Universal City/Studio City", "Hollywood/Highland")],
     "d25:4": [("metroE", "Downtown Santa Monica", "7th Street/Metro Center"),
               ("metroB", "7th Street/Metro Center", "Union Station")],
-    "d27:0": [("mono", "Harrah's & The LINQ", "Westgate")],
+    "d27:0": [("mono", "Sahara", "Harrah's & The LINQ")],
+    "d27:1": [("mono", "Harrah's & The LINQ", "Sahara")],
     "d29:0": [("mono", "Westgate", "MGM Grand")],
     "d29:1": [("mono", "MGM Grand", "Harrah's & The LINQ")],
     "d29:2": [("mono", "Harrah's & The LINQ", "Westgate")],

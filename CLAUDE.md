@@ -57,7 +57,11 @@ npm --prefix app run build      # type-checks, then builds app/dist
   (`np-progress`, `np-mode`), so a phone that already has his place in the day keeps it.
 - **One copy of the trip content.**  `vite.config.ts` aliases `@trip` to the repo's
   `src/`, so the app imports `src/data.json` and `src/routes.json` directly; the Python
-  scripts and the classic page read the same files.  `src/types.ts` types them, which is
+  scripts and the classic page read the same files.  The alias is resolved from
+  `process.cwd()`, **not** from `import.meta.url`: Vite bundles the config to a temporary
+  file and may write it to `node_modules/.vite-temp`, where `../src` becomes
+  `app/node_modules/src` and the dev server answers every request with "Failed to resolve
+  import @trip/data.json" and a 500.  It throws if the content is not found.  `src/types.ts` types them, which is
   what turns a typo in the plan into a build error instead of a blank screen.
 - **Components:** `map/MapView` (map, terrain, camera, popup, fly-through),
   `map/RouteLayers` (the six route layers + arrows), `map/Pins`, `map/Me` (the figure),
@@ -68,6 +72,27 @@ npm --prefix app run build      # type-checks, then builds app/dist
   transform off `--mks` instead of a marker offset) and a rule to size the map canvas.
 - The bundle is ~1.1 MB (307 KB gzipped), with maplibre-gl split into its own chunk so a
   content edit does not make the phone re-download the engine.
+
+### Two pages (Oct 23, 2026)
+`/` is the landing map — **every place on the trip highlighted**, plus directions from
+anywhere to anywhere; `/trip` is the day-by-day plan that used to be the landing page.
+`src/App.tsx` is react-router; `vercel.json` rewrites everything except `/assets/*` to
+`index.html` so a deep link to `/trip` works. The brand on `/trip` links back.
+
+The landing page (`src/pages/Explore.tsx`) takes a **From** and a **To** —
+`navigator.geolocation.watchPosition` fills From with "My location" as soon as there is a
+fix, tapping any pin sets To, and typing searches the trip's own stops first (instant,
+offline, verified coordinates) and then Photon (`src/lib/search.ts`). With both ends set
+it asks how he wants to travel, and each mode does what suits it:
+- **Walk / Drive** are routed live in the browser and drawn on the map with the distance,
+  the time and real turn-by-turn (`src/lib/route.ts`: Valhalla, which has a pedestrian
+  profile, falling back to OSRM for driving only — OSRM's public server has no walking).
+- **Transit** hands off to Google Maps with `travelmode=transit`, because it is the only
+  one of these with live departures for the Deuce, the monorail and LA Metro. There is no
+  free transit routing API worth shipping.
+- **Cab** offers Uber or Lyft, both deep-linked with pickup *and* drop-off filled.
+All three APIs (Valhalla, Photon, OSRM) were checked for CORS from the browser before
+building on them.
 
 ### What the React version does differently (Oct 22, 2026, after Sai's review)
 - **One leg at a time.** The map draws only the leg he is on, in blue (`#3d8bff`), with
@@ -96,6 +121,11 @@ npm --prefix app run build      # type-checks, then builds app/dist
 - **Uber and Lyft open on the confirm screen.** Both links carry pickup *and* dropoff —
   coordinates, nickname and address — and start from the place's `ent` (the kerb), not
   its pin. Google Directions uses the same two points.
+- **Every day starts where he starts.**  Tue and Wed opened at the attraction, so the
+  only leg drawn was the journey home and the ride out was just text.  Both now begin at
+  Fontainebleau.  (Thu already began at Westgate.)  `exports/Sai-Vegas-LA-Trip-Guide.pdf`
+  still shows the old first steps for those two days — `src/mkpdf.py` needs `reportlab`,
+  which is not installed here.
 - **Buttons:** one full-width primary ("✓ I'm at <stop>"), three equal secondary links
   above it (Drive/Walk/Transit, Uber, Lyft), every target at least 46 px tall.
 

@@ -69,6 +69,42 @@ export const kerb = (p: Place) => (p.ent ? { lat: p.ent[0], lng: p.ent[1] } : { 
 export const addressOf = (p: Place) =>
   `${p.n}, ${p.v === "la" ? "Los Angeles, CA" : p.v === "trip" ? "NV" : "Las Vegas, NV"}`;
 
+/** The same two links for any pair of points, not just trip stops: the landing page
+ *  routes from wherever he is standing to anywhere he searches for. */
+export function rideUrl(service: "uber" | "lyft",
+                        a: { lat: number; lng: number; name: string; address?: string },
+                        b: { lat: number; lng: number; name: string; address?: string }) {
+  if (service === "uber") {
+    const q = new URLSearchParams({
+      action: "setPickup",
+      "pickup[latitude]": String(a.lat),
+      "pickup[longitude]": String(a.lng),
+      "pickup[nickname]": a.name,
+      "pickup[formatted_address]": a.address ?? a.name,
+      "dropoff[latitude]": String(b.lat),
+      "dropoff[longitude]": String(b.lng),
+      "dropoff[nickname]": b.name,
+      "dropoff[formatted_address]": b.address ?? b.name,
+    });
+    return `https://m.uber.com/ul/?${q.toString()}`;
+  }
+  const q = new URLSearchParams({
+    id: "lyft",
+    "pickup[latitude]": String(a.lat),
+    "pickup[longitude]": String(a.lng),
+    "pickup[address]": a.address ?? a.name,
+    "destination[latitude]": String(b.lat),
+    "destination[longitude]": String(b.lng),
+    "destination[address]": b.address ?? b.name,
+  });
+  return `https://lyft.com/ride?${q.toString()}`;
+}
+
+/** Google Directions between any two points, with the travel mode already chosen. */
+export const dirUrl = (a: { lat: number; lng: number }, b: { lat: number; lng: number }, mode: string) =>
+  `https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}` +
+  `&destination=${b.lat},${b.lng}&travelmode=${mode}`;
+
 /** Uber's universal link, filled on both ends: coordinates so the pin lands exactly,
  *  nickname and address so the rider can read back where they are going.  The app
  *  opens on the confirm screen with the route already set; without the dropoff half it
