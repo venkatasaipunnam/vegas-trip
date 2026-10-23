@@ -15,6 +15,7 @@ import type { Hit } from "../lib/search";
 import { ICONS, PLACEICONS } from "../map/pinIcons";
 import { ModeIcon } from "../ui/Icons";
 import PlaceField from "../explore/PlaceField";
+import PlanMenu from "../explore/PlanMenu";
 
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const NOW = "#3d8bff";
@@ -271,10 +272,7 @@ export default function Explore() {
       <div className="finder">
         <div className="fhead">
           <h1>Neon <span>&amp;</span> Pacific</h1>
-          <nav className="flinks">
-            {mine && <Link to="/trip">Vegas plan</Link>}
-            <Link className="toplan" to="/plans">{user ? "My plans →" : "Sign in →"}</Link>
-          </nav>
+          <PlanMenu />
         </div>
 
         <PlaceField

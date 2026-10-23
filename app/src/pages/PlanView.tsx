@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Map, {
-  AttributionControl, Layer, Marker, NavigationControl, Popup, Source, type MapRef,
+  AttributionControl, GeolocateControl, Layer, Marker, NavigationControl, Popup, Source,
+  type MapRef,
 } from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
@@ -11,10 +12,14 @@ import { ICON_COLOUR, ICON_LABEL, iconSvg, tint } from "../lib/icons";
 import { MODE_COLOUR, legKeyOf, usePlanRoads } from "../lib/planroads";
 import { dirUrl, headingOf, km, kmLabel, minsLabel, rideUrl, roughMins } from "../lib/geo";
 import { arrowImage } from "../map/MapView";
+import { useRoadJourney, type JourneyLeg } from "../map/useRoadJourney";
+import { showVenuesEarlier } from "../lib/poi";
+import { useTrip } from "../store";
 import { Figure, ModeIcon, PersonIcon } from "../ui/Icons";
 import PlanPicker from "../ui/PlanPicker";
 
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
+const SAT = ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"];
 const NOW = "#3d8bff";
 const PROGRESS = "np-planprogress";
 const MODENAME: Record<string, string> = { walk: "Walk", transit: "Transit", cab: "Cab" };
@@ -34,6 +39,13 @@ export default function PlanView() {
   const [atIdx, setAtIdx] = useState(0);
   const [popId, setPopId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [firstSymbol, setFirstSymbol] = useState<string | undefined>();
+  /** Playing the day back.  Local, not in the trip store: this page can be open on a
+   *  plan while the itinerary page is not. */
+  const [playing, setPlaying] = useState(false);
+  // 3D and satellite are app-wide preferences, so they come from the same store the
+  // itinerary page uses — switching pages keeps the map looking the way he left it.
+  const { is3d, sat, toggle } = useTrip();
 
   useEffect(() => {
     const u = currentUser();
@@ -96,6 +108,26 @@ export default function PlanView() {
     m.fitBounds(b, { padding: { top: 90, bottom: 320, left: 40, right: 40 }, maxZoom: 16, duration: 1200 });
   }, [dayIdx, at, ready, leg, stops, here, next]);
 
+  const legs = useMemo<JourneyLeg[]>(() => {
+    const out: JourneyLeg[] = [];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const a = stops[i], b = stops[i + 1];
+      const road = roads[legKeyOf(a, b)];
+      out.push({
+        mode: b.mode ?? "walk",
+        coords: road?.geom?.length ? road.geom : [[a.lng, a.lat], [b.lng, b.lat]],
+      });
+    }
+    return out;
+  }, [stops, roads]);
+
+  useRoadJourney({
+    ref, ready, playing, legs, startAt: at,
+    pitch: is3d ? 64 : 0,
+    onArrive: setAt,
+    onStop: () => setPlaying(false),
+  });
+
   if (!plan || !day) return null;
   const pop = popId ? stops.find((s) => s.id === popId) : null;
   const mins = leg?.min ?? (here && next ? roughMins(mode, { ...here, n: "" } as never, { ...next, n: "" } as never) : 0);
@@ -109,13 +141,26 @@ export default function PlanView() {
           initialViewState={{ longitude: -115.165, latitude: 36.12, zoom: 12, pitch: 45 }}
           maxPitch={80} attributionControl={false}
           onLoad={(e) => {
-            if (!e.target.hasImage("np-arrow")) e.target.addImage("np-arrow", arrowImage(), { pixelRatio: 2 });
+            const m = e.target;
+            if (!m.hasImage("np-arrow")) m.addImage("np-arrow", arrowImage(), { pixelRatio: 2 });
+            showVenuesEarlier(m);
+            setFirstSymbol(m.getStyle().layers.find((l) => l.type === "symbol")?.id);
+            m.getStyle().layers
+              .filter((l) => l.type === "fill-extrusion")
+              .forEach((l) => m.setLayoutProperty(l.id, "visibility", is3d ? "visible" : "none"));
             setReady(true);
           }}
           style={{ width: "100%", height: "100%" }}
         >
           <AttributionControl compact position="bottom-right" />
           <NavigationControl position="bottom-right" visualizePitch />
+          <GeolocateControl position="bottom-right" trackUserLocation
+            positionOptions={{ enableHighAccuracy: true }} />
+
+          <Source id="sat" type="raster" tiles={SAT} tileSize={256} maxzoom={19} attribution="Imagery © Esri">
+            <Layer id="sat" type="raster" beforeId={firstSymbol}
+              layout={{ visibility: sat ? "visible" : "none" }} />
+          </Source>
 
           <Source id="leg" type="geojson" data={data}>
             <Layer id="leg-glow" type="line" layout={{ "line-cap": "round" }}
@@ -148,7 +193,7 @@ export default function PlanView() {
             </Marker>
           ))}
 
-          {here && (
+          {here && !playing && (
             <Marker longitude={here.lng} latitude={here.lat} anchor="bottom">
               <div className={`mewrap${mode === "walk" ? " walking" : ""}`} aria-label="You are here">
                 <div className="mescale">
@@ -183,13 +228,29 @@ export default function PlanView() {
         </Map>
       </div>
 
+      <div className="top viewtop">
+        <div className="ctrls">
+          <button className="ctl" aria-pressed={is3d} onClick={() => toggle("is3d")}>3D</button>
+          <button className="ctl" aria-pressed={sat} onClick={() => toggle("sat")}>Satellite</button>
+          <button className="ctl" onClick={() =>
+            document.querySelector<HTMLButtonElement>(".maplibregl-ctrl-geolocate")?.click()}>Me</button>
+        </div>
+      </div>
+
       <section className="sheet plansheet">
         <div className="phead inner">
           <div style={{ minWidth: 0 }}>
             <h2 className="planname">{plan.name}</h2>
             <PlanPicker current={id} />
           </div>
-          <Link className="btn ghost" to={`/plans/${id}`}>Edit</Link>
+          <span className="headacts">
+            {legs.length > 0 && (
+              <button className="fly" onClick={() => setPlaying(!playing)}>
+                {playing ? "■ Stop" : "▶ Play day"}
+              </button>
+            )}
+            <Link className="btn ghost" to={`/plans/${id}`}>Edit</Link>
+          </span>
         </div>
 
         <div className="body">
