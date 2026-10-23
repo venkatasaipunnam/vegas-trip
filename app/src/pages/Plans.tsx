@@ -86,7 +86,8 @@ export default function Plans() {
           <li key={p.id}>
             <Link to={`/plans/${p.id}/view`}>
               <b>{p.name}</b>
-              <span>{p.days.length} day{p.days.length === 1 ? "" : "s"} · {countStops(p)} stops · saved {when(p.updated)}</span>
+              {/* Short enough not to wrap onto a third line next to three buttons. */}
+              <span>{p.days.length}d · {countStops(p)} stops · {when(p.updated)}</span>
             </Link>
             <div className="pacts">
               <Link to={`/plans/${p.id}`}>Edit</Link>

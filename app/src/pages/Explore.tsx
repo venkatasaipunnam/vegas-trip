@@ -355,6 +355,13 @@ export default function Explore() {
           </div>
         )}
 
+        {!user && (
+          <div className="joincard">
+            <p><b>Plan your own trips</b>Save as many as you like, day by day, and read them back on the map.</p>
+            <Link className="btn done" to="/login">Sign in</Link>
+          </div>
+        )}
+
         {!ends && (
           <p className="hint">
             {mine

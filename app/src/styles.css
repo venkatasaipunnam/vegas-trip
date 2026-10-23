@@ -9,6 +9,9 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--night);color:var(--sand);font-family:var(--f-body);overflow:hidden}
+/* The pages are flex columns that centre their own content; without a height here the
+   percentage below resolves against nothing and a centred card sticks to the top. */
+#root{height:100%}
 #map{position:fixed;inset:0}
 #map .maplibregl-map{position:absolute;inset:0}
 button{font-family:inherit}
@@ -228,8 +231,11 @@ h3{margin:14px 0 8px;font-size:15px}
 .btn.maps{background:linear-gradient(135deg,#fff7ea,#e9ddff)}
 .btn.uber{background:#000;color:#fff}
 .btn.lyft{background:#ff00bf;color:#fff}
-.btn.done{flex:1;font-size:14.5px;background:linear-gradient(135deg,var(--go),var(--cyan));
+/* No flex:1 here — the pages are column flexboxes, and a growing primary button filled
+   a whole page with gradient.  It only shares a row inside .rowdone. */
+.btn.done{font-size:14.5px;background:linear-gradient(135deg,var(--go),var(--cyan));
   box-shadow:0 6px 18px rgba(94,227,154,.3)}
+.rowdone .btn.done{flex:1}
 .btn.ghost{flex:0 0 54px;background:transparent;color:var(--muted);border:1px solid var(--line)}
 .btn.ghost:active{filter:none;background:rgba(255,255,255,.05)}
 .step.walked{opacity:.5}
@@ -348,6 +354,13 @@ h3{margin:14px 0 8px;font-size:15px}
 .result .turns ol{max-height:28vh;overflow-y:auto}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .hint{margin:0;padding:0 4px;font:600 12px/1.5 var(--f-body);color:var(--muted)}
+/* Signed out, the only way in used to be a small link in the corner. */
+.joincard{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:13px;
+  border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px)}
+.joincard p{margin:0;flex:1;min-width:0;font:600 11.5px/1.45 var(--f-body);color:var(--muted)}
+.joincard p b{display:block;font:800 13px var(--f-body);color:var(--sand);margin-bottom:2px}
+.joincard .btn{flex:0 0 auto;white-space:nowrap;min-height:42px}
 
 /* His own position: the same blue as the route it starts from. */
 .livedot{width:16px;height:16px;border-radius:50%;background:#3d8bff;border:2.5px solid #fff;
@@ -374,7 +387,7 @@ h3{margin:14px 0 8px;font-size:15px}
   color:var(--night);font:800 12px var(--f-body)}
 
 /* ---------- Plans: a page rather than a map overlay ---------- */
-.page{position:relative;z-index:8;min-height:100%;max-height:100%;overflow-y:auto;
+.page{position:relative;z-index:8;min-height:100dvh;height:100%;overflow-y:auto;
   -webkit-overflow-scrolling:touch;background:var(--night);
   padding:max(16px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px))
           calc(env(safe-area-inset-bottom,0px) + 26px) max(14px,env(safe-area-inset-left,0px));
@@ -384,7 +397,9 @@ h3{margin:14px 0 8px;font-size:15px}
 .page .sub{margin:3px 0 0;font:700 10.5px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .page .fine{margin:0;font:600 11.5px/1.55 var(--f-body);color:var(--muted)}
 .page .bad{margin:0;font:700 12px var(--f-body);color:var(--maybe)}
-.phead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.phead>div{min-width:0}
+.phead .btn{flex:0 0 auto;white-space:nowrap;min-height:40px;padding:0 14px;font-size:12.5px}
 .card{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:15px;
   border:1px solid var(--line);background:var(--panel)}
 .card.auth{margin:auto 0;max-width:420px;align-self:center;width:100%}
