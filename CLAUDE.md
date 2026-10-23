@@ -111,7 +111,7 @@ Edit trip content in `src/data.json`, then rebuild. Don't hand-edit the JSON blo
 ### Decisions made with Sai
 - Arizona = **Grand Canyon West + Skywalk + Hoover Dam bus tour, Sat Oct 31** (~6:30 AM pickup, back ~5–6 PM).
 - "7stones" = **Seven Magic Mountains**, Fri Oct 30 after 11 AM, by cab with the driver waiting (no transit, no restrooms).
-- Sphere = **The Wizard of Oz at Sphere**, Fri Oct 30, 3–4 PM showing.
+- Sphere = **The Wizard of Oz at Sphere**, Fri Oct 30. The 3–4 PM slot decided with Sai **does not exist**: the only Friday showtimes are 2 PM, 5 PM and 8 PM. The plan now points at the **5 PM** show (doors 4:15), which is the one that fits after Seven Magic Mountains — needs Sai's confirmation, and his ticket may already be for another time.
 - Design direction: mix of neon Vegas, retro road-trip postcard and clean, "cool and animated."
 
 ### Day plan (summary; full detail in data.json)
@@ -121,7 +121,7 @@ Edit trip content in `src/data.json`, then rebuild. Don't hand-edit the JSON blo
 - **Tue 27:** 9 PM monorail to LINQ → High Roller night ride (open until 11:30 PM) → LINQ Promenade.
 - **Wed 28:** 9 PM Deuce to Fremont Street Experience.
 - **Thu 29:** move to Westgate; 6:30 PM monorail to MGM → New York-New York, Excalibur, Luxor; optional Sphere exterior (Metallica night, crowds).
-- **Fri 30:** 11:15 cab → Welcome sign → Seven Magic Mountains → back → Wizard of Oz at Sphere 3–4 PM → early night.
+- **Fri 30:** 11:15 cab → Welcome sign → Seven Magic Mountains → back → Wizard of Oz at Sphere 5 PM (doors 4:15) → early night.
 - **Sat 31:** 6 AM checkout, bags at Westgate bell desk → Grand Canyon West tour → back ~5:30 → Halloween night on the Strip → 9:15 PM cab to LAS.
 
 ### Universal plan (no coasters)
@@ -129,23 +129,24 @@ GO: Studio Tour (first), Secret Life of Pets, Mario Kart: Bowser's Challenge, Ku
 MAYBE: Minion Mayhem (ask for stationary seats), Flight of the Hippogriff (small family coaster), Jurassic World (one big drop, wet).
 SKIP: Fast & Furious: Hollywood Drift, Revenge of the Mummy, Forbidden Journey, Transformers, The Simpsons Ride.
 
-## Facts checked on Oct 22, 2026 (re-verify before relying on them)
-- Universal Studios Hollywood, Sun Oct 25: **8 AM – 6 PM**; Halloween Horror Nights runs after close (separate ticket).
+## Facts re-checked on Oct 22, 2026 — second pass (re-verify before relying on them)
+- Universal Studios Hollywood, Sun Oct 25: **8 AM – 6 PM** (early entry 7 AM for tickets that include it); Halloween Horror Nights runs after close (separate ticket). Only aggregator data (thrill-data) gives a date-specific listing; the official calendar could not be read.
 - **Fast & Furious: Hollywood Drift** opened Sept 16, 2026: 72 mph, up to 3.6 G, spinning vehicles.
 - Animal Actors and the Special Effects show were removed (the coaster was built on their space).
-- The Wizard of Oz at Sphere: 75 min, no late entry, from ~$100; Halloween activities in the atrium Oct 30 – Nov 1.
-- Metallica at Sphere Oct 24, 29, 31 (sold out) → heavy crowds near the Venetian those nights.
-- High Roller: Tue 12:30–11:30 PM (Fri/Sun later); closed to the public Tue Oct 27, 4–6:30 PM (private event); ride = 30 min.
-- RTC Deuce: 24/7; $6 for 2 h, $8 for 24 h, $20 for 3 days (rideRTC app).
-- Las Vegas Monorail: $15 per 24 h ($13.45 online); Mon 7 AM–midnight, Tue–Thu to 2 AM, Fri–Sun to 3 AM; stations include Sahara, Westgate, Harrah's/LINQ, MGM Grand.
-- Grand Canyon West + Hoover Dam tours: ~11 h, pickups ~6:30–7 AM (e.g. Sahara, Circus Circus, Treasure Island), only small bags allowed, confirm pickup 48 h ahead. The Skywalk is ~4,000 ft above the canyon floor; phones are not allowed on it.
-- Seven Magic Mountains: free, open any time, no transit, no restrooms; cabs can't easily be called back from there.
-- Santa Monica sunset Oct 25: about 6:05 PM.
+- The Wizard of Oz at Sphere: 75 min, doors 45 min early, no late entry. **Fri Oct 30 showtimes are 2 PM, 5 PM and 8 PM — there is no 3–4 PM showing.** About $142 all in (was listed as "from ~$100"). Halloween activities in the atrium Oct 30 – Nov 1; afterparty following the 8 PM show on Oct 30.
+- Metallica at Sphere Oct 22 (tonight), 24, 29, 31 (plus Nov 5–7) → heavy crowds near the Venetian those nights.
+- High Roller: **Mon–Thu noon–midnight, Fri–Sun noon–2 AM**; **closed to the public Tue Oct 27, 4:00–7:30 PM** (private event; was 4–6:30 PM); ride = 30 min. Also closed all day Nov 19–21.
+- RTC Deuce: 24/7; $6 for 2 h, $8 for 24 h, $20 for 3 days, $4 single ride (rideRTC app; the 3-day pass cannot be bought on board).
+- Las Vegas Monorail: $15 per 24 h at the station; the official ticket site now shows **$13.95** online (other sources still say $13.45). Mon 7 AM–midnight, Tue–Thu to 2 AM, Fri–Sun to 3 AM; stations include Sahara, Westgate, Harrah's/LINQ, MGM Grand.
+- Grand Canyon West + Hoover Dam tours: ~10.5–12 h, pickups **anywhere from ~5 AM to ~7 AM depending on the operator** (commonly 6:30–6:50 AM at Sahara, Circus Circus, Treasure Island), drop-off 7–8 PM for some operators, only small bags allowed, confirm pickup **48–72 h ahead**; pickup details usually arrive the day before. The Skywalk is ~4,000 ft above the canyon floor; phones are not allowed on it.
+- Seven Magic Mountains: free, no ticket, no transit, no restrooms (nearest ~5 miles away in Jean); cabs can't easily be called back from there. **Hours now described as sunrise to sunset** rather than "any time" — no lighting after dark. The Nevada Museum of Art lists the installation through **Dec 31, 2026**.
+- Santa Monica sunset Oct 25: **6:08 PM** PDT (was noted as 6:05).
 
 ## Open questions for Sai
 - Exact bus stop locations in Vegas and LA (check tickets).
 - Universal ticket type (Express / Early Access would allow more).
-- Which Grand Canyon tour operator → pickup spot near Westgate.
+- Which Grand Canyon tour operator → pickup spot near Westgate (pickups range ~5–7 AM, so the 6:30 AM assumption may be off).
+- Which Wizard of Oz at Sphere showtime he holds a ticket for (2, 5 or 8 PM on Fri Oct 30) — the plan assumes 5 PM.
 
 ## Possible next improvements
 - Live test on iPhone Safari after deploy: geolocation ("Me" button, needs HTTPS — Pages provides it; it is the one feature that could not be exercised locally), touch drag/pitch gestures, home-screen install.
