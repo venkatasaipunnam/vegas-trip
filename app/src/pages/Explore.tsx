@@ -6,6 +6,7 @@ import Map, {
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import { CATS, CITYCOL, places } from "../data";
+import { currentUser } from "../lib/accounts";
 import { dirUrl, kmLabel, minsLabel, rideUrl } from "../lib/geo";
 import { liveRoute, type LiveRoute, type Point } from "../lib/route";
 import type { Hit } from "../lib/search";
@@ -48,6 +49,9 @@ export default function Explore() {
    *  end he was actually filling in — tap a pin while setting "From" and it landed in
    *  "To".  Now the tap names the place and he says which end it is. */
   const [picked, setPicked] = useState<string | null>(null);
+  /** The Vegas itinerary is a plan of his, not a public page, so the link to it only
+   *  appears to whoever is signed in. */
+  const [user] = useState(() => currentUser());
 
   // Watch, not a one-shot fix: he is walking while he reads this.
   useEffect(() => {
@@ -217,8 +221,8 @@ export default function Explore() {
         <div className="fhead">
           <h1>Neon <span>&amp;</span> Pacific</h1>
           <nav className="flinks">
-            <Link to="/trip">Vegas plan</Link>
-            <Link className="toplan" to="/plans">My plans →</Link>
+            {user && <Link to="/trip">Vegas plan</Link>}
+            <Link className="toplan" to="/plans">{user ? "My plans →" : "Sign in →"}</Link>
           </nav>
         </div>
 

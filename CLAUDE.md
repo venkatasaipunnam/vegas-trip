@@ -74,6 +74,11 @@ npm --prefix app run build      # type-checks, then builds app/dist
   content edit does not make the phone re-download the engine.
 
 ### Saved plans and profiles (Oct 23, 2026)
+`/trip` is **not public**: the Vegas itinerary is Sai's own plan, so `RequireUser`
+redirects a signed-out visitor to `/login` and the landing header only shows the "Vegas
+plan" link to whoever is signed in (signed out it reads "Sign in →"). The landing map
+itself stays open — the route finder is useful to anyone and gives nothing of his away.
+
 `/plans` lists the trips a profile has saved, `/plans/:id` edits one, `/login` signs in.
 A plan is `{name, days:[{title, date, stops:[{name, lat, lng, icon, time, note, mode}]}]}`
 (`src/lib/plans.ts`); stops carry one of 24 icons (`src/lib/icons.ts`) grouped as stay &
