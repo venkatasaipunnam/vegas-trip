@@ -9,10 +9,12 @@ real streets, satellite view, tilting 3D buildings, his day-by-day plan, and tap
 
 **Hosting: Vercel, not GitHub Pages.** Pages was enabled on Oct 22, 2026 and switched off the
 same day at Sai's request — he wants the site served only from Vercel. GitHub stays as the
-code remote, and Vercel deploys from it (imported at vercel.com/new), so every push to
-`master` redeploys. `https://venkatasaipunnam.github.io/vegas-trip/` is dead; do not re-enable
+code remote, and Vercel deploys from it, so every push to `master` redeploys.
+**The site is `https://vegastrip.vercel.app/`** — verified live at iPhone width on Oct 22, 2026:
+HTTPS, tiles, 3D buildings, 5 route layers, the standing figure, the next-leg bar, no console
+errors. `https://venkatasaipunnam.github.io/vegas-trip/` is dead; do not re-enable
 Pages.
-**Next step:** finish the Vercel import, then open the site on Sai's own iPhone and check touch
+**Next step:** open the site on Sai's own iPhone and check touch
 gestures, geolocation (needs HTTPS, which Vercel provides) and home-screen install.
 
 ## Current status
@@ -21,7 +23,7 @@ gestures, geolocation (needs HTTPS, which Vercel provides) and home-screen insta
 | `index.html` (3D map site) | Done and **tested live with real tiles** (local server, Chromium, iPhone-sized and desktop viewports): streets, labels, 3D buildings, satellite, Grand Canyon terrain, markers, popups, day switching and all three tabs render with no console errors. Not yet tested on a real iPhone. |
 | GitHub repo `venkatasaipunnam/vegas-trip` | **public**, default branch `master`, pushed from this machine with Sai's own git credentials (`gh` is not logged in; the Pages API call used the token from the git credential helper). |
 | Push from claude.ai | Refused (Claude GitHub App not installed on the repo). Claude Code on Sai's machine uses his own git credentials, so this should work. |
-| Hosting | **Vercel** (import `venkatasaipunnam/vegas-trip`, framework preset "Other", no build command, root `/`). `vercel.json` sets `cleanUrls` and a no-cache header on `index.html` so the phone never holds a stale page. GitHub Pages was enabled and then deleted via the API the same day — Sai does not want it hosted there. |
+| Hosting | **Vercel, live at `https://vegastrip.vercel.app/`** (imported `venkatasaipunnam/vegas-trip`, framework preset "Other", no build command, root `/`). `vercel.json` sets `cleanUrls` and a no-cache header on `index.html` so the phone never holds a stale page. GitHub Pages was enabled and then deleted via the API the same day — Sai does not want it hosted there. |
 | `exports/Sai-Vegas-LA-Trip-Guide.pdf` | Done. 18 phone-sized pages, works offline, tappable Map/Directions/Apple Maps/3D links. |
 | `exports/Sai-Vegas-LA-Trip.kml` | Done. 9 folders (one per day + extras), 22 placemarks. Import into Google My Maps (desktop) or open in Google Earth. |
 | `legacy/artifact-trip-map.html` | First version (claude.ai artifact, hand-drawn SVG map). Sai found it too basic. Kept for reference only. |
