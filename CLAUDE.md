@@ -73,6 +73,27 @@ npm --prefix app run build      # type-checks, then builds app/dist
 - The bundle is ~1.1 MB (307 KB gzipped), with maplibre-gl split into its own chunk so a
   content edit does not make the phone re-download the engine.
 
+### Two pages (Oct 23, 2026)
+`/` is the landing map — **every place on the trip highlighted**, plus directions from
+anywhere to anywhere; `/trip` is the day-by-day plan that used to be the landing page.
+`src/App.tsx` is react-router; `vercel.json` rewrites everything except `/assets/*` to
+`index.html` so a deep link to `/trip` works. The brand on `/trip` links back.
+
+The landing page (`src/pages/Explore.tsx`) takes a **From** and a **To** —
+`navigator.geolocation.watchPosition` fills From with "My location" as soon as there is a
+fix, tapping any pin sets To, and typing searches the trip's own stops first (instant,
+offline, verified coordinates) and then Photon (`src/lib/search.ts`). With both ends set
+it asks how he wants to travel, and each mode does what suits it:
+- **Walk / Drive** are routed live in the browser and drawn on the map with the distance,
+  the time and real turn-by-turn (`src/lib/route.ts`: Valhalla, which has a pedestrian
+  profile, falling back to OSRM for driving only — OSRM's public server has no walking).
+- **Transit** hands off to Google Maps with `travelmode=transit`, because it is the only
+  one of these with live departures for the Deuce, the monorail and LA Metro. There is no
+  free transit routing API worth shipping.
+- **Cab** offers Uber or Lyft, both deep-linked with pickup *and* drop-off filled.
+All three APIs (Valhalla, Photon, OSRM) were checked for CORS from the browser before
+building on them.
+
 ### What the React version does differently (Oct 22, 2026, after Sai's review)
 - **One leg at a time.** The map draws only the leg he is on, in blue (`#3d8bff`), with
   its direction arrows and marching dashes. Eight dotted lines across the Strip said
