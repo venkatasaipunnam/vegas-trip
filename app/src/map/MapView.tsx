@@ -9,6 +9,7 @@ import { atOf, useTrip } from "../store";
 import Pins from "./Pins";
 import Me from "./Me";
 import RouteLayers from "./RouteLayers";
+import { useJourney } from "./useJourney";
 
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const SAT = ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"];
@@ -59,7 +60,7 @@ export default function MapView() {
   const [popId, setPopId] = useState<string | null>(null);
   const wild = useRef(false);   // the camera is framing open country, not a street
 
-  const { day, is3d, sat, focus, flying, setFlying, setActive, setAt, flyTo } = useTrip();
+  const { day, is3d, sat, focus, setFlying, setActive, setAt, flyTo } = useTrip();
   const atIdx = useTrip((s) => atOf(s.progress, s.day));
 
   const wantTerrain = useCallback(() => {
@@ -163,25 +164,8 @@ export default function MapView() {
     m.fitBounds(b, { padding: sheetPad(), pitch: is3d ? 55 : 0, bearing: -25, duration: 2200, maxZoom: 15.5 });
   }, [day, ready]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The camera tour: one stop after the next, stopped by any drag.
-  useEffect(() => {
-    if (!flying || !ready) return;
-    const m = ref.current?.getMap();
-    if (!m) return;
-    let cancelled = false;
-    const stop = () => { cancelled = true; setFlying(false); };
-    m.once("dragstart", stop);
-    (async () => {
-      const stops = stopsOf(dayById(day));
-      for (const id of stops) {
-        if (cancelled) return;
-        flyTo(id);
-        await new Promise((r) => setTimeout(r, 3400));
-      }
-      if (!cancelled) setFlying(false);
-    })();
-    return () => { cancelled = true; m.off("dragstart", stop); };
-  }, [flying, ready]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // Playing a day is a journey along the road now, not a tour of pins: see useJourney.
+  useJourney(ref, ready);
 
   const pop = popId ? places[popId] : null;
   const popStop = pop ? stopsOf(dayById(day)).indexOf(popId!) : -1;

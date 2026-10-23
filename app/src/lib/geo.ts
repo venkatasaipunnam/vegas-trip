@@ -48,18 +48,58 @@ export function modeFromStep(how: string, cab: boolean, a: Place, b: Place) {
   return km(a, b) < 1.1 ? ("walk" as const) : ("transit" as const);
 }
 
-export const gdir = (a: Place, b: Place, m: string) =>
-  `https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=${m}`;
+export const gdir = (a: Place, b: Place, m: string) => {
+  const from = kerb(a), to = kerb(b);
+  return `https://www.google.com/maps/dir/?api=1&origin=${from.lat},${from.lng}` +
+    `&destination=${to.lat},${to.lng}&travelmode=${m}`;
+};
 export const gmap = (q: string) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 export const gearth = (p: Place) =>
   `https://earth.google.com/web/search/${encodeURIComponent(p.q)}/@${p.lat},${p.lng},800a,2000d,35y,0h,60t,0r`;
 export const amap = (p: Place) =>
   `https://maps.apple.com/?daddr=${p.lat},${p.lng}&dirflg=r`;
-export const uberURL = (a: Place, b: Place) =>
-  `https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${a.lat}&pickup[longitude]=${a.lng}` +
-  `&pickup[nickname]=${encodeURIComponent(a.n)}&dropoff[latitude]=${b.lat}` +
-  `&dropoff[longitude]=${b.lng}&dropoff[nickname]=${encodeURIComponent(b.n)}`;
-export const lyftURL = (a: Place, b: Place) =>
-  `https://lyft.com/ride?id=lyft&pickup[latitude]=${a.lat}&pickup[longitude]=${a.lng}` +
-  `&destination[latitude]=${b.lat}&destination[longitude]=${b.lng}`;
+/** The kerb, not the pin.  A cab cannot stop in the middle of the Bellagio, so every
+ *  ride link starts and ends at the place's entrance point when it has one. */
+export const kerb = (p: Place) => (p.ent ? { lat: p.ent[0], lng: p.ent[1] } : { lat: p.lat, lng: p.lng });
+
+/** An address for the driver's screen.  We hold no street addresses, and a name plus
+ *  the right city is what both apps geocode back to the same spot — it is also what
+ *  Sai will recognise in the confirmation screen. */
+export const addressOf = (p: Place) =>
+  `${p.n}, ${p.v === "la" ? "Los Angeles, CA" : p.v === "trip" ? "NV" : "Las Vegas, NV"}`;
+
+/** Uber's universal link, filled on both ends: coordinates so the pin lands exactly,
+ *  nickname and address so the rider can read back where they are going.  The app
+ *  opens on the confirm screen with the route already set; without the dropoff half it
+ *  opens on an empty "where to?". */
+export function uberURL(a: Place, b: Place) {
+  const from = kerb(a), to = kerb(b);
+  const q = new URLSearchParams({
+    action: "setPickup",
+    "pickup[latitude]": String(from.lat),
+    "pickup[longitude]": String(from.lng),
+    "pickup[nickname]": a.n,
+    "pickup[formatted_address]": addressOf(a),
+    "dropoff[latitude]": String(to.lat),
+    "dropoff[longitude]": String(to.lng),
+    "dropoff[nickname]": b.n,
+    "dropoff[formatted_address]": addressOf(b),
+  });
+  return `https://m.uber.com/ul/?${q.toString()}`;
+}
+
+/** Lyft takes the same two ends under its own parameter names. */
+export function lyftURL(a: Place, b: Place) {
+  const from = kerb(a), to = kerb(b);
+  const q = new URLSearchParams({
+    id: "lyft",
+    "pickup[latitude]": String(from.lat),
+    "pickup[longitude]": String(from.lng),
+    "pickup[address]": addressOf(a),
+    "destination[latitude]": String(to.lat),
+    "destination[longitude]": String(to.lng),
+    "destination[address]": addressOf(b),
+  });
+  return `https://lyft.com/ride?${q.toString()}`;
+}

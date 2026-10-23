@@ -1,6 +1,6 @@
 import { Marker } from "react-map-gl/maplibre";
 import { CITYCOL, dayById, places, stopsOf } from "../data";
-import { useTrip } from "../store";
+import { atOf, useTrip } from "../store";
 import { ICONS, PLACEICONS } from "./pinIcons";
 
 const tint = (hex: string, a: number) => {
@@ -20,6 +20,7 @@ const colourOf = (cat: string, v: string) =>
  *  scaling about 50%/50% keeps the tip on its coordinate at every zoom. */
 export default function Pins({ onPick }: { onPick: (id: string) => void }) {
   const { day, showAll, activeId } = useTrip();
+  const atIdx = useTrip((s) => atOf(s.progress, s.day));
   const stops = stopsOf(dayById(day));
 
   return (
@@ -40,7 +41,8 @@ export default function Pins({ onPick }: { onPick: (id: string) => void }) {
             >
               <div className="mkscale">
                 <div
-                  className={`mk${i < 0 ? " dim" : ""}${id === activeId ? " active" : ""}`}
+                  className={`mk${i < 0 ? " dim" : ""}${id === activeId ? " active" : ""}${
+                    i === atIdx ? " under" : ""}`}
                   style={{ ["--c" as string]: col, ["--cbg" as string]: tint(col, 0.74) }}
                   dangerouslySetInnerHTML={{ __html: PLACEICONS[id] || ICONS[p.cat] || ICONS.see }}
                 />

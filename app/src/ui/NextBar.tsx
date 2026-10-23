@@ -25,8 +25,14 @@ export default function NextBar({ stops }: { stops: string[] }) {
         <Head name={stops.length ? undefined : ""} />
         <p className="to">Last stop of the day — nothing left to travel to.</p>
         <div className="go">
-          {atIdx > 0 && <button className="back" onClick={() => setAt(atIdx - 1)}>↶ Back a stop</button>}
-          <button className="back" onClick={() => setAt(0)}>↺ Start of day</button>
+          <div className="rowdone">
+            {atIdx > 0 && (
+              <button className="btn ghost" style={{ flex: 1 }} onClick={() => setAt(atIdx - 1)}>
+                ↶ Back a stop
+              </button>
+            )}
+            <button className="btn ghost" style={{ flex: 1 }} onClick={() => setAt(0)}>↺ Start of day</button>
+          </div>
         </div>
       </div>
     );
@@ -79,13 +85,22 @@ export default function NextBar({ stops }: { stops: string[] }) {
       )}
 
       <div className="go">
-        <a href={gdir(here, to, gm)} target="_blank" rel="noopener">
-          {mode === "walk" ? "Walking route" : mode === "cab" ? "Driving route" : "Transit route"}
-        </a>
-        <a className="uber" href={uberURL(here, to)} target="_blank" rel="noopener">Uber</a>
-        <a className="lyft" href={lyftURL(here, to)} target="_blank" rel="noopener">Lyft</a>
-        <button className="done" onClick={() => setAt(atIdx + 1)}>✓ I'm here</button>
-        {atIdx > 0 && <button className="back" onClick={() => setAt(atIdx - 1)}>↶</button>}
+        <div className="row3">
+          <a className="btn maps" href={gdir(here, to, gm)} target="_blank" rel="noopener">
+            <ModeIcon m={mode} />
+            {mode === "walk" ? "Walk" : mode === "cab" ? "Drive" : "Transit"}
+          </a>
+          {/* Both ride links carry pickup and dropoff — coordinates, name and address —
+              so the app opens on the confirm screen with the trip already set. */}
+          <a className="btn uber" href={uberURL(here, to)} target="_blank" rel="noopener">Uber</a>
+          <a className="btn lyft" href={lyftURL(here, to)} target="_blank" rel="noopener">Lyft</a>
+        </div>
+        <div className="rowdone">
+          <button className="btn done" onClick={() => setAt(atIdx + 1)}>✓ I'm at {to.n.split(" ")[0]}</button>
+          {atIdx > 0 && (
+            <button className="btn ghost" aria-label="Back a stop" onClick={() => setAt(atIdx - 1)}>↶</button>
+          )}
+        </div>
       </div>
     </div>
   );

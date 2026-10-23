@@ -37,6 +37,8 @@ interface TripState {
   legend: boolean;
   activeId: string | null;
   flying: boolean;
+  /** True while a day is playing back and the figure is moving along a road. */
+  traveling: boolean;
   snap: Snap;
   /** The stop the camera should fly to.  The counter is what makes tapping the same
    *  stop twice fly there twice. */
@@ -50,6 +52,7 @@ interface TripState {
   setActive: (id: string | null) => void;
   flyTo: (id: string) => void;
   setFlying: (v: boolean) => void;
+  setTraveling: (v: boolean) => void;
   setSnap: (s: Snap) => void;
   toggle: (k: "is3d" | "sat" | "showAll" | "legend") => void;
 }
@@ -65,6 +68,7 @@ export const useTrip = create<TripState>((set, get) => ({
   legend: false,
   activeId: null,
   flying: false,
+  traveling: false,
   snap: 1,
   focus: { id: null, nonce: 0 },
 
@@ -87,6 +91,7 @@ export const useTrip = create<TripState>((set, get) => ({
   setActive: (activeId) => set({ activeId }),
   flyTo: (id) => set((s) => ({ focus: { id, nonce: s.focus.nonce + 1 }, activeId: id })),
   setFlying: (flying) => set({ flying }),
+  setTraveling: (traveling) => set({ traveling }),
   setSnap: (snap) => set({ snap }),
   toggle: (k) => set({ [k]: !get()[k] } as Pick<TripState, typeof k>),
 }));

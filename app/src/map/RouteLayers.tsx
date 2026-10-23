@@ -1,7 +1,10 @@
 import { Layer, Source } from "react-map-gl/maplibre";
 import type { FeatureCollection, LineString } from "geojson";
 import { useEffect, useMemo, useState } from "react";
-import { CITYCOL, dayById, extraOf, legRec, places, stopsOf } from "../data";
+import { dayById, extraOf, legRec, places, stopsOf } from "../data";
+
+/** The one colour that means "this is your way now". */
+const NOW = "#3d8bff";
 import { atOf, useTrip } from "../store";
 import type { ModeKey } from "../types";
 
@@ -30,34 +33,36 @@ export default function RouteLayers() {
   const atIdx = useTrip((s) => atOf(s.progress, s.day));
 
   const data = useMemo<FeatureCollection<LineString>>(() => {
-    const D = dayById(day);
-    const stops = stopsOf(D);
-    const c = CITYCOL[D.city];
+    const stops = stopsOf(dayById(day));
     const features: FeatureCollection<LineString>["features"] = [];
-    for (let i = 0; i < stops.length - 1; i++) {
-      const rec = legRec(day, i);
-      const pick = modePick[`${day}:${i}`];
+    // Only the leg he is on.  Eight dotted lines across the Strip told him nothing
+    // about what to do next; one blue line from where he is standing to the next stop
+    // is the whole instruction.
+    if (atIdx < stops.length - 1) {
+      const rec = legRec(day, atIdx);
+      const pick = modePick[`${day}:${atIdx}`];
       const m: ModeKey = pick && (!rec || rec.modes[pick]) ? pick : rec ? rec.planned : "walk";
-      const a = places[stops[i]];
-      const b = places[stops[i + 1]];
+      const a = places[stops[atIdx]];
+      const b = places[stops[atIdx + 1]];
       const geom = rec?.modes[m]?.geom;
-      const st = i < atIdx ? "done" : i === atIdx ? "now" : "next";
       features.push({
         type: "Feature",
-        properties: { m, st, c: st === "done" ? "#5b4f85" : st === "now" ? "#ffd166" : c },
+        properties: { m, st: "now", c: NOW },
         geometry: {
           type: "LineString",
           // A missing pre-computed leg still gets a line: better a straight hop than
-          // a day with no route at all.
+          // no route at all.
           coordinates: geom && geom.length > 1 ? geom : [[a.lng, a.lat], [b.lng, b.lat]],
         },
       });
     }
+    // The overnight coach stays on the map as context, faint and behind everything:
+    // it is how he arrives, not a route he follows on foot.
     const ex = extraOf(day);
     if (ex?.geom) {
       features.push({
         type: "Feature",
-        properties: { m: "transit", st: "next", c: "#c9b6ff" },
+        properties: { m: "extra", st: "extra", c: "#c9b6ff" },
         geometry: { type: "LineString", coordinates: ex.geom },
       });
     }
@@ -69,31 +74,38 @@ export default function RouteLayers() {
 
   return (
     <Source id="route" type="geojson" data={data}>
+      {/* The faint context line first, so the live leg always draws over it. */}
       <Layer
-        id="route-glow" type="line" layout={{ "line-cap": "round" }}
-        paint={{ "line-color": ["get", "c"], "line-width": 13, "line-opacity": 0.2, "line-blur": 6 }}
+        id="route-extra" type="line" filter={["==", ["get", "st"], "extra"]}
+        layout={{ "line-cap": "butt" }}
+        paint={{ "line-color": ["get", "c"], "line-width": 2, "line-opacity": 0.28, "line-dasharray": [3, 3] }}
+      />
+      <Layer
+        id="route-glow" type="line" filter={["==", ["get", "st"], "now"]}
+        layout={{ "line-cap": "round" }}
+        paint={{ "line-color": ["get", "c"], "line-width": 16, "line-opacity": 0.26, "line-blur": 7 }}
       />
       <Layer
         id="route-now" type="line" filter={["==", ["get", "st"], "now"]}
         layout={{ "line-cap": "round" }}
-        paint={{ "line-color": ["get", "c"], "line-width": 7, "line-opacity": 0.35, "line-blur": 1 }}
+        paint={{ "line-color": ["get", "c"], "line-width": 8, "line-opacity": 0.4, "line-blur": 1 }}
       />
       {/* line-dasharray takes no data-driven expression, so each mode is its own
           filtered layer: round dots for walking, dashes for transit, solid for a cab. */}
       <Layer
-        id="route-walk" type="line" filter={["==", ["get", "m"], "walk"]}
+        id="route-walk" type="line" filter={["all", ["==", ["get", "m"], "walk"], ["==", ["get", "st"], "now"]]}
         layout={{ "line-cap": "round" }}
-        paint={{ "line-color": ["get", "c"], "line-width": 4.4, "line-dasharray": [0, 1.7] }}
+        paint={{ "line-color": ["get", "c"], "line-width": 5.2, "line-dasharray": [0, 1.7] }}
       />
       <Layer
-        id="route-transit" type="line" filter={["==", ["get", "m"], "transit"]}
+        id="route-transit" type="line" filter={["all", ["==", ["get", "m"], "transit"], ["==", ["get", "st"], "now"]]}
         layout={{ "line-cap": "butt" }}
-        paint={{ "line-color": ["get", "c"], "line-width": 3.2, "line-dasharray": [2.2, 1.4] }}
+        paint={{ "line-color": ["get", "c"], "line-width": 4, "line-dasharray": [2.2, 1.4] }}
       />
       <Layer
-        id="route-cab" type="line" filter={["==", ["get", "m"], "cab"]}
+        id="route-cab" type="line" filter={["all", ["==", ["get", "m"], "cab"], ["==", ["get", "st"], "now"]]}
         layout={{ "line-cap": "round" }}
-        paint={{ "line-color": ["get", "c"], "line-width": 3.6 }}
+        paint={{ "line-color": ["get", "c"], "line-width": 4.4 }}
       />
       <Layer
         id="route-flow" type="line" filter={["==", ["get", "st"], "now"]}
@@ -106,6 +118,7 @@ export default function RouteLayers() {
           the journey runs. */}
       <Layer
         id="route-arrow" type="symbol"
+        filter={["==", ["get", "st"], "now"]}
         layout={{
           "symbol-placement": "line",
           "symbol-spacing": ["interpolate", ["linear"], ["zoom"], 11, 54, 16, 96],

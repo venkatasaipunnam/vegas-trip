@@ -123,10 +123,13 @@ h3{margin:14px 0 8px;font-size:15px}
    his legs and arms swing, so the figure says what he is about to do. */
 .mewrap{width:44px;height:58px;pointer-events:none;will-change:transform;position:absolute;top:0;left:0;z-index:3}
 .mescale{position:absolute;inset:0;transform:scale(var(--mks,1));transform-origin:50% 100%}
-/* The nudge that keeps the figure clear of the stop's own pin.  A CSS transform off
-   the same --mks as the scale, so it shrinks with him instead of drifting as the map
-   zooms — the marker's own offset would only catch up at the end of a pinch. */
-.menudge{position:absolute;inset:0;transform:translateX(calc(25px * var(--mks,1)))}
+/* The figure and the pin now stand on exactly the same coordinate, so the pin he is
+   standing at steps back instead of being shoved sideways: nothing has to lie about
+   where the stop is for both to be readable. */
+.mk.under{opacity:.34}
+.mk.under:hover{opacity:.8}
+/* The figure that plays back a day travels along the road; no standing ring under him. */
+.mewrap.travelling .mering{display:none}
 .me{position:absolute;left:0;right:0;bottom:0;height:100%;display:block}
 .me svg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:34px;height:54px;overflow:visible}
 .me .ink,.me .skin{fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -169,17 +172,19 @@ h3{margin:14px 0 8px;font-size:15px}
 .nextbar .dir{display:block;font:700 11px var(--f-mono);color:var(--cyan);margin-top:4px;letter-spacing:.03em}
 /* Walk / Transit / Cab, each with its own time, distance and fare. */
 .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
-.picks .pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;
-  border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.045);color:var(--sand);
-  cursor:pointer;text-align:left;font:inherit;min-width:0}
+.picks .pick{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+  gap:3px;padding:8px 9px;min-height:74px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.045);color:var(--sand);cursor:pointer;text-align:left;font:inherit;
+  min-width:0;-webkit-tap-highlight-color:transparent;transition:transform .12s ease}
+.picks .pick:active{transform:scale(.97)}
 .picks .pick svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 .picks .pick b{font:800 11.5px var(--f-body);display:flex;align-items:center;gap:4px}
 .picks .pick b i{font:800 8px var(--f-mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;
   padding:1px 3px;border-radius:4px;background:rgba(255,255,255,.16)}
-.picks .pick span{font:700 9.5px var(--f-mono);color:var(--muted);white-space:nowrap}
+.picks .pick span{font:700 10.5px var(--f-mono);color:var(--sand);white-space:nowrap}
 .picks .pick em{font:600 9px var(--f-body);font-style:normal;color:var(--muted);opacity:.9;line-height:1.2}
 .picks .pick[disabled]{opacity:.32;cursor:default}
-.picks .pick.on{border-color:transparent;color:var(--night)}
+.picks .pick.on{border-color:transparent;color:var(--night);box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .picks .pick.on span,.picks .pick.on em{color:rgba(10,7,20,.72)}
 .picks .pick.on b i{background:rgba(10,7,20,.18)}
 .picks .pick.on.walk{background:var(--go)}
@@ -195,13 +200,27 @@ h3{margin:14px 0 8px;font-size:15px}
   text-transform:uppercase;color:var(--night);padding:3px 8px;border-radius:6px;margin-top:6px}
 .mode svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .mode.walk{background:var(--go)}.mode.transit{background:var(--cyan)}.mode.cab{background:var(--amber)}
-.go{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
-.go a,.go button{font:800 12px var(--f-body);text-decoration:none;border:0;cursor:pointer;
-  padding:8px 11px;border-radius:10px;color:var(--night);background:var(--sand)}
-.go a.uber{background:#0a0714;color:#fff;border:1px solid rgba(255,255,255,.35)}
-.go a.lyft{background:#ff00bf;color:#fff}
-.go .done{background:linear-gradient(135deg,var(--go),var(--cyan));box-shadow:0 0 14px rgba(94,227,154,.4)}
-.go .back{background:transparent;color:var(--muted);border:1px solid var(--line)}
+/* Buttons.  The old row wrapped five different sizes of control onto two ragged
+   lines and the one he needs most — "I'm here" — was the smallest thing on it.  Now
+   there is one full-width primary action, three equal secondary links above it, and
+   every target is at least 46px tall, which is what a thumb needs on a moving bus. */
+.go{display:flex;flex-direction:column;gap:7px;margin-top:11px}
+.go .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.go .rowdone{display:flex;gap:7px}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 12px;
+  border:0;border-radius:12px;cursor:pointer;text-decoration:none;text-align:center;
+  font:800 13px var(--f-body);color:var(--night);background:var(--sand);
+  -webkit-tap-highlight-color:transparent;transition:transform .12s ease,filter .12s ease}
+.btn:active{transform:scale(.97);filter:brightness(1.05)}
+.btn svg{width:15px;height:15px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2.3;
+  stroke-linecap:round;stroke-linejoin:round}
+.btn.maps{background:linear-gradient(135deg,#fff7ea,#e9ddff)}
+.btn.uber{background:#000;color:#fff}
+.btn.lyft{background:#ff00bf;color:#fff}
+.btn.done{flex:1;font-size:14.5px;background:linear-gradient(135deg,var(--go),var(--cyan));
+  box-shadow:0 6px 18px rgba(94,227,154,.3)}
+.btn.ghost{flex:0 0 54px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+.btn.ghost:active{filter:none;background:rgba(255,255,255,.05)}
 .step.walked{opacity:.5}
 .step.walked .n{background:#3a3160;color:var(--muted)}
 .step.here{border-color:var(--go);box-shadow:0 0 14px rgba(94,227,154,.28)}

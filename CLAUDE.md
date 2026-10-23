@@ -69,6 +69,27 @@ npm --prefix app run build      # type-checks, then builds app/dist
 - The bundle is ~1.1 MB (307 KB gzipped), with maplibre-gl split into its own chunk so a
   content edit does not make the phone re-download the engine.
 
+### What the React version does differently (Oct 22, 2026, after Sai's review)
+- **One leg at a time.** The map draws only the leg he is on, in blue (`#3d8bff`), with
+  its direction arrows and marching dashes. Eight dotted lines across the Strip said
+  nothing about what to do next. The overnight coach stays as a faint dashed context
+  line; everything else is gone until he advances.
+- **The figure stands exactly on the stop.** The old sideways nudge kept him clear of
+  the pin but made the two markers disagree about where the stop was — the same
+  complaint as a misplaced pin. Now the pin he is standing at fades instead
+  (`.mk.under`).
+- **"Fly this day" is a journey, not a slideshow** (`map/useJourney.ts`): the figure
+  travels along the real road geometry of each leg with the camera behind him, bearing
+  smoothed so a winding road does not spin the view, legs timed 5–13 s regardless of
+  length (the Grand Canyon coach is 250 km), and `setAt` advancing as he arrives. He is
+  a plain MapLibre marker moved per frame, not a React component: a re-render per frame
+  is what stutters on a phone. Any drag, or the Stop button, ends it.
+- **Uber and Lyft open on the confirm screen.** Both links carry pickup *and* dropoff —
+  coordinates, nickname and address — and start from the place's `ent` (the kerb), not
+  its pin. Google Directions uses the same two points.
+- **Buttons:** one full-width primary ("✓ I'm at <stop>"), three equal secondary links
+  above it (Drive/Walk/Transit, Uber, Lyft), every target at least 46 px tall.
+
 ## Terrain: why it is conditional
 `setTerrain` is what makes the Grand Canyon read as 3D, but it must not be on for close-up
 city views, and it must not be switched on mid-flight:
