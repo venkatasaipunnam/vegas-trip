@@ -7,6 +7,8 @@ import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import { CATS, CITYCOL, places } from "../data";
 import { currentUser } from "../lib/accounts";
+import { OWNER_USER } from "../lib/plans";
+import { showVenuesEarlier, venueAt } from "../lib/poi";
 import { dirUrl, kmLabel, minsLabel, rideUrl } from "../lib/geo";
 import { liveRoute, type LiveRoute, type Point } from "../lib/route";
 import type { Hit } from "../lib/search";
@@ -44,6 +46,9 @@ export default function Explore() {
   const [err, setErr] = useState<string | null>(null);
   const [live, setLive] = useState<{ lat: number; lng: number; acc: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  /** A venue tapped on the basemap — any restaurant, casino or station, not just the
+   *  places already in a plan. */
+  const [venue, setVenue] = useState<{ name: string; lat: number; lng: number } | null>(null);
   /** The pin he just tapped.  Tapping used to set the destination outright, which was
    *  wrong twice over: it never said which place had been chosen, and it overrode the
    *  end he was actually filling in — tap a pin while setting "From" and it landed in
@@ -52,6 +57,7 @@ export default function Explore() {
   /** The Vegas itinerary is a plan of his, not a public page, so the link to it only
    *  appears to whoever is signed in. */
   const [user] = useState(() => currentUser());
+  const mine = user === OWNER_USER;
 
   // Watch, not a one-shot fix: he is walking while he reads this.
   useEffect(() => {
@@ -123,7 +129,7 @@ export default function Explore() {
     if (!m || !ready) return;
     const pts: [number, number][] = route
       ? route.geom
-      : Object.values(places).map((p) => [p.lng, p.lat]);
+      : mine ? Object.values(places).map((p) => [p.lng, p.lat]) : [];
     if (!pts.length) return;
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
     m.fitBounds(b, {
@@ -131,7 +137,7 @@ export default function Explore() {
       duration: route ? 1400 : 0,
       maxZoom: route ? 16 : 11,
     });
-  }, [route, ready]);
+  }, [route, ready, mine]);
 
   const ends = from && to;
   const transitHandoff = () => {
@@ -146,7 +152,12 @@ export default function Explore() {
           mapStyle={STYLE}
           initialViewState={{ longitude: -115.9, latitude: 35.4, zoom: 6, pitch: 0 }}
           attributionControl={false}
-          onLoad={() => setReady(true)}
+          onLoad={(e) => { showVenuesEarlier(e.target); setReady(true); }}
+          onClick={(e) => {
+            const v = venueAt(ref.current, e);
+            setPicked(null);
+            setVenue(v);
+          }}
           style={{ width: "100%", height: "100%" }}
         >
           <AttributionControl compact position="bottom-right" />
@@ -159,9 +170,9 @@ export default function Explore() {
               paint={{ "line-color": NOW, "line-width": 5 }} />
           </Source>
 
-          {/* Every place on the trip, highlighted.  Tapping one makes it the destination,
-              which is faster than typing a casino's name on a phone. */}
-          {Object.entries(places).map(([id, p]) => {
+          {/* The trip's own stops, for the one profile whose trip it is.  Everyone else
+              gets a plain map and the search: his itinerary is not a sample dataset. */}
+          {mine && Object.entries(places).map(([id, p]) => {
             const col = colourOf(p.cat, p.v);
             return (
               <Marker key={id} longitude={p.lng} latitude={p.lat} anchor="center">
@@ -203,6 +214,29 @@ export default function Explore() {
                     const p = places[picked];
                     setTo({ lat: p.lat, lng: p.lng, name: p.n });
                     setPicked(null);
+                  }}>▲ Go here</button>
+                </div>
+              </div>
+            </Popup>
+          )}
+
+          {venue && (
+            <Popup
+              longitude={venue.lng} latitude={venue.lat} anchor="bottom" offset={14}
+              closeOnClick={false} maxWidth="250px" onClose={() => setVenue(null)}
+            >
+              <div className="pop pick">
+                <span className="cat" style={{ background: "#3fe0e8" }}>On the map</span>
+                <h4>{venue.name}</h4>
+                <div className="btns">
+                  <button className="b1" onClick={() => {
+                    touched.current = true;
+                    setFrom({ lat: venue.lat, lng: venue.lng, name: venue.name });
+                    setVenue(null);
+                  }}>◉ Start here</button>
+                  <button className="b2" onClick={() => {
+                    setTo({ lat: venue.lat, lng: venue.lng, name: venue.name });
+                    setVenue(null);
                   }}>▲ Go here</button>
                 </div>
               </div>
@@ -306,8 +340,9 @@ export default function Explore() {
 
         {!ends && (
           <p className="hint">
-            Every stop on the trip is on the map — tap one to set it as your destination,
-            or search for anywhere else.
+            {mine
+              ? "Every stop on your trip is on the map. Tap one, tap any venue the map shows, or search for anywhere else."
+              : "Search for a place, or tap any venue on the map — restaurants, hotels, casinos and stations are all named once you zoom in."}
           </p>
         )}
       </div>

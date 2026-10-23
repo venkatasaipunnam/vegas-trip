@@ -21,8 +21,8 @@ const DEM = ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y
 const TERRAIN_MAXZOOM = 13.2;
 
 /** A small white arrowhead pointing along +x, which is the direction of travel once
- *  MapLibre places it on a line. */
-function arrowImage() {
+ *  MapLibre places it on a line.  Exported: the plan editor draws the same arrows. */
+export function arrowImage() {
   const s = 26;
   const cv = document.createElement("canvas");
   cv.width = cv.height = s;

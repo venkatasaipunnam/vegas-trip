@@ -17,6 +17,11 @@ export interface Stop {
   /** Free text, because "9:00 PM" and "after work" are both useful. */
   time?: string;
   note?: string;
+  /** The Vegas plan's stops each carry a few lines of what to look for and one tip, and
+   *  they are the most useful thing in its popups — so a plan he builds himself can hold
+   *  the same, or the detail only ever exists in the itinerary that shipped with the app. */
+  see?: string[];
+  tip?: string;
   /** How he gets to this stop from the one before it. */
   mode?: "walk" | "transit" | "cab";
 }
@@ -116,6 +121,8 @@ export function vegasPlan(): Plan {
               icon: CAT_ICON[p.cat] ?? "pin",
               time: s[0],
               note: s[2],
+              see: p.see?.length ? [...p.see] : undefined,
+              tip: p.tip || undefined,
               mode: first && leg
                 ? (leg.cab ? "cab" : /walk/i.test(leg.how) ? "walk" : "transit")
                 : undefined,
@@ -125,6 +132,10 @@ export function vegasPlan(): Plan {
     }),
   };
 }
+
+/** Whose plan the Vegas trip is.  It is Sai's itinerary, not a sample: nobody else's
+ *  profile gets it, and nobody else is offered it. */
+export const OWNER_USER = "vsai";
 
 /** The owner's own account, put in place on first run.  Only the PBKDF2 digest is here —
  *  the password itself is not in the code, and is not recoverable from this. */

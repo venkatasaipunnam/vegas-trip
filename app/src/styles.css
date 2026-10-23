@@ -471,3 +471,8 @@ h3{margin:14px 0 8px;font-size:15px}
 .flinks{display:flex;align-items:center;gap:8px}
 .flinks a{font:800 11.5px var(--f-body);color:var(--cyan);text-decoration:none}
 .flinks a.toplan{color:var(--night)}
+
+.lf textarea{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:600 14px var(--f-body);padding:10px 12px;border-radius:11px;width:100%;resize:vertical}
+.lf textarea:focus{outline:none;border-color:var(--cyan)}
+.hintlabel{font-style:normal;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;margin-left:5px}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { currentUser, signOut } from "../lib/accounts";
-import { deletePlan, duplicatePlan, emptyPlan, listPlans, savePlan, seedOwner, vegasPlan, type Plan } from "../lib/plans";
+import { OWNER_USER, deletePlan, duplicatePlan, emptyPlan, listPlans, savePlan, seedOwner, vegasPlan, type Plan } from "../lib/plans";
 
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -84,8 +84,9 @@ export default function Plans() {
         ))}
       </ul>
 
-      {!plans.length && <p className="fine">No plans yet. Start one above, or bring in the Vegas trip.</p>}
-      {!plans.some((p) => p.id === "vegas-oct-2026") && (
+      {!plans.length && <p className="fine">No plans yet. Start one above.</p>}
+      {/* The Vegas itinerary is one person's trip, so only that profile is offered it. */}
+      {user === OWNER_USER && !plans.some((p) => p.id === "vegas-oct-2026") && (
         <button className="linky" onClick={() => { savePlan(user, vegasPlan()); refresh(user); }}>
           + Add the Vegas &amp; LA trip as a plan
         </button>

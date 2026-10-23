@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Map, {
-  AttributionControl, Layer, Marker, NavigationControl, Source, type MapRef,
+  AttributionControl, Layer, Marker, NavigationControl, Popup, Source, type MapRef,
 } from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
@@ -9,10 +9,60 @@ import { currentUser } from "../lib/accounts";
 import { getPlan, savePlan, uid, type Plan, type PlanDay, type Stop } from "../lib/plans";
 import { ICON_COLOUR, ICON_GROUPS, ICON_LABEL, iconSvg, type IconKey } from "../lib/icons";
 import { geocode, tripHits, type Hit } from "../lib/search";
+import { VENUE_ICON, showVenuesEarlier, venueAt } from "../lib/poi";
+import { liveRoute } from "../lib/route";
 import { ModeIcon } from "../ui/Icons";
+import { arrowImage } from "../map/MapView";
 
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const MODES: Stop["mode"][] = ["walk", "transit", "cab"];
+const MODE_COLOUR: Record<string, string> = { walk: "#5ee39a", transit: "#3fe0e8", cab: "#ffb547" };
+const ROADS = "np-planroads";
+
+/** A plan he builds himself deserves the same line the Vegas plan gets: the road he will
+ *  actually be on, not a straight hop between pins.  The trip's own legs are routed at
+ *  build time, which cannot work here — these places did not exist when the app was
+ *  built — so each leg is routed in the browser once and kept in localStorage, and the
+ *  straight line stays until its road arrives.  Transit has no free router, so a transit
+ *  leg borrows the driving line: the Deuce does follow the road. */
+function usePlanRoads(stops: Stop[]) {
+  const [roads, setRoads] = useState<Record<string, [number, number][]>>(() => {
+    try { return JSON.parse(localStorage.getItem(ROADS) || "{}"); } catch { return {}; }
+  });
+
+  useEffect(() => {
+    const ac = new AbortController();
+    (async () => {
+      const found: Record<string, [number, number][]> = {};
+      for (let i = 0; i < stops.length - 1; i++) {
+        const a = stops[i], b = stops[i + 1];
+        const mode = b.mode ?? "walk";
+        const k = `${a.lat},${a.lng}>${b.lat},${b.lng}:${mode}`;
+        if (roads[k] || found[k]) continue;
+        try {
+          const r = await liveRoute(
+            { lat: a.lat, lng: a.lng, name: a.name },
+            { lat: b.lat, lng: b.lng, name: b.name },
+            mode === "walk" ? "walk" : "car",
+            ac.signal,
+          );
+          found[k] = r.geom;
+        } catch {
+          if (ac.signal.aborted) return;   // nothing to do: the straight line stays
+        }
+      }
+      if (ac.signal.aborted || !Object.keys(found).length) return;
+      setRoads((prev) => {
+        const next = { ...prev, ...found };
+        try { localStorage.setItem(ROADS, JSON.stringify(next)); } catch { /* full: keep in memory */ }
+        return next;
+      });
+    })();
+    return () => ac.abort();
+  }, [stops]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  return roads;
+}
 
 const tint = (hex: string, a: number) => {
   const n = parseInt(hex.slice(1), 16);
@@ -36,6 +86,7 @@ export default function PlanEditor() {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [ready, setReady] = useState(false);
+  const [venue, setVenue] = useState<{ name: string; lat: number; lng: number; kind: string } | null>(null);
 
   useEffect(() => {
     const u = currentUser();
@@ -76,13 +127,25 @@ export default function PlanEditor() {
     return () => { clearTimeout(t); ac.abort(); };
   }, [q, day]);
 
-  const path = useMemo<FeatureCollection<LineString>>(() => ({
-    type: "FeatureCollection",
-    features: day && day.stops.length > 1 ? [{
-      type: "Feature", properties: {},
-      geometry: { type: "LineString", coordinates: day.stops.map((s) => [s.lng, s.lat]) },
-    }] : [],
-  }), [day]);
+  const roads = usePlanRoads(day?.stops ?? []);
+  const path = useMemo<FeatureCollection<LineString>>(() => {
+    const stops = day?.stops ?? [];
+    const features: FeatureCollection<LineString>["features"] = [];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const a = stops[i], b = stops[i + 1];
+      const mode = b.mode ?? "walk";
+      const road = roads[`${a.lat},${a.lng}>${b.lat},${b.lng}:${mode}`];
+      features.push({
+        type: "Feature",
+        properties: { m: mode, c: MODE_COLOUR[mode] },
+        geometry: {
+          type: "LineString",
+          coordinates: road?.length ? road : [[a.lng, a.lat], [b.lng, b.lat]],
+        },
+      });
+    }
+    return { type: "FeatureCollection", features };
+  }, [day, roads]);
 
   // Frame the day whenever it changes, so adding a stop shows where it landed.
   useEffect(() => {
@@ -128,11 +191,21 @@ export default function PlanEditor() {
           mapStyle={STYLE}
           initialViewState={{ longitude: -115.165, latitude: 36.12, zoom: 12 }}
           attributionControl={false}
-          onLoad={() => setReady(true)}
+          onLoad={(e) => {
+            const m = e.target;
+            showVenuesEarlier(m);
+            if (!m.hasImage("np-arrow")) m.addImage("np-arrow", arrowImage(), { pixelRatio: 2 });
+            setReady(true);
+          }}
           cursor={dropping ? "crosshair" : "grab"}
           onClick={(e) => {
-            if (!dropping) return;
-            addStop({ name: "", lat: +e.lngLat.lat.toFixed(5), lng: +e.lngLat.lng.toFixed(5), icon: "pin" });
+            if (dropping) {
+              addStop({ name: "", lat: +e.lngLat.lat.toFixed(5), lng: +e.lngLat.lng.toFixed(5), icon: "pin" });
+              return;
+            }
+            // Not in drop mode: offer whatever venue the basemap has under the tap, so a
+            // place that was never in the plan can be added by name.
+            setVenue(venueAt(ref.current, e));
           }}
           style={{ width: "100%", height: "100%" }}
         >
@@ -140,9 +213,48 @@ export default function PlanEditor() {
           <NavigationControl position="bottom-right" />
 
           <Source id="plan" type="geojson" data={path}>
-            <Layer id="plan-line" type="line" layout={{ "line-cap": "round" }}
-              paint={{ "line-color": "#3d8bff", "line-width": 3.4, "line-dasharray": [2.2, 1.6], "line-opacity": 0.9 }} />
+            <Layer id="plan-glow" type="line" layout={{ "line-cap": "round" }}
+              paint={{ "line-color": ["get", "c"], "line-width": 12, "line-opacity": 0.2, "line-blur": 6 }} />
+            {/* One layer per mode, because line-dasharray takes no data-driven value:
+                dots for a walk, dashes for transit, a solid road for a cab. */}
+            <Layer id="plan-walk" type="line" filter={["==", ["get", "m"], "walk"]}
+              layout={{ "line-cap": "round" }}
+              paint={{ "line-color": ["get", "c"], "line-width": 4.6, "line-dasharray": [0, 1.7] }} />
+            <Layer id="plan-transit" type="line" filter={["==", ["get", "m"], "transit"]}
+              layout={{ "line-cap": "butt" }}
+              paint={{ "line-color": ["get", "c"], "line-width": 3.6, "line-dasharray": [2.2, 1.4] }} />
+            <Layer id="plan-cab" type="line" filter={["==", ["get", "m"], "cab"]}
+              layout={{ "line-cap": "round" }}
+              paint={{ "line-color": ["get", "c"], "line-width": 4 }} />
+            <Layer id="plan-arrow" type="symbol"
+              layout={{
+                "symbol-placement": "line",
+                "symbol-spacing": ["interpolate", ["linear"], ["zoom"], 11, 54, 16, 96],
+                "icon-image": "np-arrow", "icon-rotation-alignment": "map",
+                "icon-allow-overlap": true, "icon-ignore-placement": true,
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.42, 16, 0.9],
+              }}
+              paint={{ "icon-opacity": 0.95 }} />
           </Source>
+
+          {venue && (
+            <Popup longitude={venue.lng} latitude={venue.lat} anchor="bottom" offset={14}
+              closeOnClick={false} maxWidth="240px" onClose={() => setVenue(null)}>
+              <div className="pop pick">
+                <span className="cat" style={{ background: "#3fe0e8" }}>{venue.kind || "On the map"}</span>
+                <h4>{venue.name}</h4>
+                <div className="btns">
+                  <button className="b4" onClick={() => {
+                    addStop({
+                      name: venue.name, lat: venue.lat, lng: venue.lng,
+                      icon: (VENUE_ICON[venue.kind] as IconKey) ?? "pin",
+                    });
+                    setVenue(null);
+                  }}>+ Add as a stop</button>
+                </div>
+              </div>
+            </Popup>
+          )}
 
           {day.stops.map((s, i) => (
             <Marker key={s.id} longitude={s.lng} latitude={s.lat} anchor="center">
@@ -205,7 +317,7 @@ export default function PlanEditor() {
           </div>
 
           <ol className="planstops">
-            {day.stops.map((s, i) => (
+          {day.stops.map((s, i) => (
               <li key={s.id} className={draft?.id === s.id ? "on" : ""}>
                 <span className="si" style={{ background: tint(ICON_COLOUR[s.icon], 0.9) }}
                   dangerouslySetInnerHTML={{ __html: iconSvg(s.icon) }} />
@@ -251,6 +363,21 @@ export default function PlanEditor() {
                   </span>
                 </label>
               </div>
+              <label className="lf">
+                <span>What to see <i className="hintlabel">one per line</i></span>
+                <textarea rows={3} value={(draft.see ?? []).join("\n")}
+                  placeholder={"Fountain show every 15 minutes\nConservatory inside is free"}
+                  onChange={(e) => {
+                    const see = e.target.value.split("\n").filter((l) => l.trim());
+                    setDraft({ ...draft, see });
+                    patch(draft.id, (s) => { s.see = see; });
+                  }} />
+              </label>
+              <label className="lf">
+                <span>Tip</span>
+                <input value={draft.tip ?? ""} placeholder="Watch from the bridge by Paris"
+                  onChange={(e) => { setDraft({ ...draft, tip: e.target.value }); patch(draft.id, (s) => { s.tip = e.target.value; }); }} />
+              </label>
               <label className="lf">
                 <span>Note</span>
                 <input value={draft.note ?? ""} placeholder="Book ahead, closes at 11…"
