@@ -216,7 +216,10 @@ export default function Explore() {
       <div className="finder">
         <div className="fhead">
           <h1>Neon <span>&amp;</span> Pacific</h1>
-          <Link className="toplan" to="/trip">My day plan →</Link>
+          <nav className="flinks">
+            <Link to="/trip">Vegas plan</Link>
+            <Link className="toplan" to="/plans">My plans →</Link>
+          </nav>
         </div>
 
         <PlaceField

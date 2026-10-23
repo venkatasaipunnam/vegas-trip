@@ -372,3 +372,102 @@ h3{margin:14px 0 8px;font-size:15px}
 /* The two choices share the popup's own button shapes; only the element differs. */
 .pop.pick .btns button{flex:1;padding:9px 10px;border-radius:9px;border:0;cursor:pointer;
   color:var(--night);font:800 12px var(--f-body)}
+
+/* ---------- Plans: a page rather than a map overlay ---------- */
+.page{position:relative;z-index:8;min-height:100%;max-height:100%;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;background:var(--night);
+  padding:max(16px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px))
+          calc(env(safe-area-inset-bottom,0px) + 26px) max(14px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:12px}
+.page h1{margin:0;font:400 19px/1.15 var(--f-display);text-shadow:0 0 6px var(--pink),0 0 14px rgba(255,79,163,.5)}
+.page h1 span{color:var(--cyan);text-shadow:0 0 6px var(--cyan)}
+.page .sub{margin:3px 0 0;font:700 10.5px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.page .fine{margin:0;font:600 11.5px/1.55 var(--f-body);color:var(--muted)}
+.page .bad{margin:0;font:700 12px var(--f-body);color:var(--maybe)}
+.phead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:15px;
+  border:1px solid var(--line);background:var(--panel)}
+.card.auth{margin:auto 0;max-width:420px;align-self:center;width:100%}
+.card.auth form{display:flex;flex-direction:column;gap:10px}
+.lf{display:flex;flex-direction:column;gap:4px}
+.lf>span{font:800 9.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lf input{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:600 15px var(--f-body);padding:11px 12px;border-radius:11px;width:100%}
+.lf input:focus{outline:none;border-color:var(--cyan)}
+.linky{align-self:flex-start;background:none;border:0;padding:4px 0;cursor:pointer;
+  font:700 12px var(--f-body);color:var(--cyan);text-decoration:none}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+
+.plans{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.plans li{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:14px;
+  border:1px solid var(--line);background:var(--panel)}
+.plans li a{flex:1;min-width:0;text-decoration:none;display:flex;flex-direction:column;gap:3px}
+.plans li a b{font:800 14.5px var(--f-body);color:var(--sand)}
+.plans li a span{font:700 10px var(--f-mono);color:var(--muted)}
+.pacts{display:flex;gap:6px;flex:0 0 auto}
+.pacts button{border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;
+  font:700 10.5px var(--f-body);padding:7px 9px;border-radius:9px}
+.pacts button.del{color:var(--skip)}
+
+/* ---------- The plan editor ---------- */
+.sheet.plansheet{height:min(62vh,560px);max-height:72%}
+.phead.inner{padding:2px 14px 8px}
+.planname{border:0;background:transparent;color:var(--sand);font:400 16px var(--f-display);
+  padding:0;width:100%}
+.planname:focus{outline:none;border-bottom:1px solid var(--cyan)}
+.chip.add{border-style:dashed;color:var(--cyan)}
+.dayedit{display:flex;gap:7px;align-items:center;margin:4px 0 10px;flex-wrap:wrap}
+.daytitle{flex:1;min-width:120px;border:1px solid var(--line);background:rgba(255,255,255,.05);
+  color:var(--sand);font:700 13px var(--f-body);padding:9px 11px;border-radius:10px}
+.daydate{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:600 12px var(--f-mono);padding:8px 10px;border-radius:10px}
+.daytitle:focus,.daydate:focus{outline:none;border-color:var(--cyan)}
+
+.planstops{list-style:none;margin:0 0 11px;padding:0;display:flex;flex-direction:column;gap:7px}
+.planstops li{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:13px;
+  border:1px solid var(--line);background:rgba(255,255,255,.035)}
+.planstops li.on{border-color:var(--cyan)}
+.planstops .si{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+.planstops .si svg{width:17px;height:17px;fill:none;stroke:var(--night);stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.planstops .sbody{flex:1;min-width:0;border:0;background:none;color:var(--sand);cursor:pointer;
+  text-align:left;display:flex;flex-direction:column;gap:2px;font:inherit}
+.planstops .sbody b{font:700 13.5px var(--f-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.planstops .sbody span{font:600 10.5px var(--f-mono);color:var(--muted);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.sacts{display:flex;gap:3px;flex:0 0 auto}
+.sacts button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:transparent;
+  color:var(--muted);cursor:pointer;font-size:13px;line-height:1}
+.sacts button:disabled{opacity:.3}
+.sacts button.del{color:var(--skip)}
+
+.stopform{margin-bottom:11px}
+.modepick{display:flex;gap:5px}
+.mp{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:transparent;
+  color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.mp svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mp.on{background:var(--cyan);color:var(--night);border-color:transparent}
+.icongrid{display:flex;flex-direction:column;gap:9px}
+.igroup h4{margin:0 0 5px;font:800 9px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
+.ib{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border-radius:11px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--c,var(--sand));cursor:pointer}
+.ib svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ib i{font:700 8.5px var(--f-body);font-style:normal;color:var(--muted);text-align:center;line-height:1.2}
+.ib.on{border-color:transparent;background:var(--c);color:var(--night)}
+.ib.on i{color:rgba(10,7,20,.75)}
+.addrow{margin-bottom:6px}
+.sugg.flat{position:static;box-shadow:none;max-height:34vh}
+
+/* A stop's order on the map, so the list and the pins agree. */
+.mknum{position:absolute;left:50%;top:50%;transform:translate(6px,-22px);z-index:5;
+  min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--night);color:var(--sand);
+  border:1.5px solid var(--sand);font:800 10px/14px var(--f-mono);text-align:center}
+.dropbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:9;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;
+  border-radius:13px;border:1px solid var(--cyan);background:var(--panel-solid);
+  font:800 12px var(--f-body);color:var(--sand);box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.flinks{display:flex;align-items:center;gap:8px}
+.flinks a{font:800 11.5px var(--f-body);color:var(--cyan);text-decoration:none}
+.flinks a.toplan{color:var(--night)}
