@@ -176,6 +176,31 @@ h3{margin:14px 0 8px;font-size:15px}
 .nextbar .to{margin:5px 0 0;font-size:14.5px;line-height:1.3}
 .nextbar .to b{color:var(--sand)}
 .nextbar .how{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.nextbar .dir{display:block;font:700 11px var(--f-mono);color:var(--cyan);margin-top:4px;letter-spacing:.03em}
+/* Walk / Transit / Cab, each with its own time, distance and fare. */
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.picks .pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;
+  border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.045);color:var(--sand);
+  cursor:pointer;text-align:left;font:inherit;min-width:0}
+.picks .pick svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.picks .pick b{font:800 11.5px var(--f-body);display:flex;align-items:center;gap:4px}
+.picks .pick b i{font:800 8px var(--f-mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;
+  padding:1px 3px;border-radius:4px;background:rgba(255,255,255,.16)}
+.picks .pick span{font:700 9.5px var(--f-mono);color:var(--muted);white-space:nowrap}
+.picks .pick em{font:600 9px var(--f-body);font-style:normal;color:var(--muted);opacity:.9;line-height:1.2}
+.picks .pick[disabled]{opacity:.32;cursor:default}
+.picks .pick.on{border-color:transparent;color:var(--night)}
+.picks .pick.on span,.picks .pick.on em{color:rgba(10,7,20,.72)}
+.picks .pick.on b i{background:rgba(10,7,20,.18)}
+.picks .pick.on.walk{background:var(--go)}
+.picks .pick.on.transit{background:var(--cyan)}
+.picks .pick.on.cab{background:var(--amber)}
+.nextbar .via{margin:7px 0 0;font:700 11px var(--f-mono);color:var(--sand)}
+.turns{margin-top:7px}
+.turns summary{font:800 10.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer}
+.turns ol{margin:6px 0 0;padding-left:17px;display:flex;flex-direction:column;gap:3px}
+.turns li{font-size:12px;color:var(--sand);line-height:1.35}
+.turns li span{font:700 10px var(--f-mono);color:var(--muted);margin-left:5px}
 .mode{display:inline-flex;align-items:center;gap:5px;font:800 10.5px var(--f-mono);letter-spacing:.06em;
   text-transform:uppercase;color:var(--night);padding:3px 8px;border-radius:6px;margin-top:6px}
 .mode svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -279,6 +304,10 @@ h3{margin:14px 0 8px;font-size:15px}
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 const DATA=__DATA__;
+/* Every leg of the trip, routed at build time in all three modes (src/mkroutes.py).
+   Routing in the page meant the car profile for walking legs and no route at all
+   without a signal; this file ships with the page. */
+const ROUTEDATA=__ROUTES__;
 const {P,DAYS,CATS,RIDES,LACARDS,AZCARDS}=DATA;
 const CITYCOL={lv:"#ff4fa3",la:"#3fe0e8",az:"#ffb547"};
 const sv=d=>`<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
@@ -321,11 +350,9 @@ const PLACEICONS={
   promenade:sv('<path d="M4 9h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9zM3 9l2-5h14l2 5M9 21v-7h6v7"/>'),
   venice:sv('<path d="M12 22V10M12 10c0-3 3-5 6-4-1 3-3 4-6 4zm0 0c0-3-3-5-6-4 1 3 3 4 6 4zM3 19c2 1 3 1 4.5 0s2.5-1 4.5 0 3 1 4.5 0 2.5-1 4.5 0"/>')
 };
-const ROUTES={
- d25:[[36.12,-115.17],[35.6,-115.4],[35.27,-116.07],[34.9,-117.02],[34.5,-117.4],[34.1,-117.6],[34.0562,-118.2365]],
- d31:[[36.1361,-115.1522],[36.016,-114.7377],[35.59,-114.27],[35.8,-113.95],[36.0119,-113.8108]],
- d30:[[36.1361,-115.1522],[36.082,-115.1728],[35.8385,-115.2705]]
-};
+/* The overnight coach to LA is the one journey that is not a leg between two stops
+   of a day, so it is drawn from its own pre-computed line. */
+const extraOf=id=>(ROUTEDATA.extra||{})[id]||null;
 const PERSON=sv('<circle cx="12" cy="4.6" r="2.4"/><path d="M12 7.4v6.4M8.6 10.2 12 8.8l3.4 1.4M9.4 21.5 12 14.6l2.6 6.9"/>');
 /* The figure standing on the map.  Head, torso, two arms and two legs, each limb in
    its own group so CSS can swing it.  Drawn twice — a dark ink pass, then a green skin
@@ -422,6 +449,22 @@ map.on("load",()=>{
     layout:{"line-cap":"butt"},paint:{"line-color":["get","c"],"line-width":3.2,"line-dasharray":[2.2,1.4]}});
   map.addLayer({id:"route-cab",type:"line",source:"route",filter:["==",["get","m"],"cab"],
     layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":3.6}});
+  // The leg he is on marches towards the next stop, so the line itself says which way
+  // to go.  A dash offset is the only thing MapLibre will animate cheaply enough to
+  // leave running on a phone, and it stops as soon as there is no current leg.
+  map.addLayer({id:"route-flow",type:"line",source:"route",filter:["==",["get","st"],"now"],
+    layout:{"line-cap":"butt"},paint:{"line-color":"#fff7ea","line-width":2.2,
+      "line-opacity":.9,"line-dasharray":[0,4,3]}});
+  // Direction arrows.  An arrow drawn into a canvas rather than a glyph from the
+  // style's font: the base style carries no arrow character we can rely on, and a
+  // missing glyph is a silent blank.  symbol-placement:"line" points it along the
+  // geometry, which runs from the stop he is at towards the next one.
+  if(!map.hasImage("np-arrow"))map.addImage("np-arrow",arrowImage(),{pixelRatio:2});
+  map.addLayer({id:"route-arrow",type:"symbol",source:"route",
+    layout:{"symbol-placement":"line","symbol-spacing":["interpolate",["linear"],["zoom"],11,54,16,96],
+      "icon-image":"np-arrow","icon-rotation-alignment":"map","icon-allow-overlap":true,
+      "icon-ignore-placement":true,"icon-size":["interpolate",["linear"],["zoom"],10,.42,16,.9]},
+    paint:{"icon-opacity":.95}});
   set3d(true);
   setPinScale();
   selectDay(day,true);
@@ -573,7 +616,9 @@ function selectDay(id,first){
   document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.d===id));
   drawRoute();placeMe();
   drawMarkers();renderDays();
-  const pts=[...stops.map(s=>[places[s].lng,places[s].lat]),...(ROUTES[id]&&id!=="d25"?ROUTES[id].map(([a,b])=>[b,a]):[])];
+  const ex=extraOf(id);
+  const pts=[...stops.map(s=>[places[s].lng,places[s].lat]),
+             ...(ex&&ex.geom&&id!=="d25"?ex.geom:[])];
   const lv=stops.filter(s=>places[s].v==="lv").map(s=>[places[s].lng,places[s].lat]);
   const use=(id==="d31"?pts:(lv.length>1&&D.city==="lv"?lv:pts));
   if(map&&use.length){
@@ -582,75 +627,95 @@ function selectDay(id,first){
   }
 }
 
+/* A small white arrowhead, drawn once into a canvas.  Points along +x, which is the
+   direction of travel once MapLibre places it on the line. */
+function arrowImage(){
+  const s=26,cv=document.createElement("canvas");cv.width=cv.height=s;
+  const g=cv.getContext("2d");g.translate(s/2,s/2);
+  g.beginPath();g.moveTo(8,0);g.lineTo(-5.5,-6.5);g.lineTo(-2.5,0);g.lineTo(-5.5,6.5);g.closePath();
+  g.lineJoin="round";g.lineWidth=3;g.strokeStyle="rgba(10,7,20,.9)";g.stroke();
+  g.fillStyle="#fff7ea";g.fill();
+  return {width:s,height:s,data:new Uint8Array(g.getImageData(0,0,s,s).data)};
+}
+/* Marching dashes on the current leg.  Paused when the page is hidden, so it cannot
+   quietly drain the battery in his pocket. */
+const DASHES=[[0,4,3],[.5,4,2.5],[1,4,2],[1.5,4,1.5],[2,4,1],[2.5,4,.5],[3,4,0]];
+let dashAt=0,dashTimer=null;
+function flowDash(on){
+  if(dashTimer){clearInterval(dashTimer);dashTimer=null}
+  if(!on||!map||!map.getLayer("route-flow")||document.hidden)return;
+  dashTimer=setInterval(()=>{
+    if(document.hidden||!map.getLayer("route-flow"))return;
+    dashAt=(dashAt+1)%DASHES.length;
+    map.setPaintProperty("route-flow","line-dasharray",DASHES[dashAt]);
+  },110);
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){if(dashTimer){clearInterval(dashTimer);dashTimer=null}}
+  else if(map&&map.getSource("route"))drawRoute();
+});
+
 /* ---------- Where Sai is standing, and how he gets to the next stop ---------- */
-const ROUTEMODE={d25:"transit",d31:"cab",d30:"cab"};
 /* Legs behind him go grey, the leg he is on is gold, the rest keep the city colour. */
-/* Real roads, not straight hops.  A line between two pins cut diagonally through
-   the Bellagio; what Sai needs is the street he will actually be on.  OSRM's public
-   demo server returns that geometry, so each leg is drawn straight first — the day
-   always has a line, even with no signal — and then replaced by its road as the
-   answers come back.  Roads are cached in localStorage, so a day he has opened once
-   redraws with no network at all. */
-const OSRM="https://router.project-osrm.org/route/v1/driving/";
-const ROADKEY="np-roads";
-let roadCache={};try{roadCache=JSON.parse(localStorage.getItem(ROADKEY))||{}}catch(e){}
-const roadFailed=new Set();   // in memory only: a dropped request must not stick for good
-const roadKey=pts=>pts.map(p=>p[0].toFixed(4)+","+p[1].toFixed(4)).join(";");
-async function roadLine(pts){
-  const k=roadKey(pts);
-  if(roadCache[k])return roadCache[k];
-  if(roadFailed.has(k)||!window.fetch)return null;
-  const far=km({lat:pts[0][1],lng:pts[0][0]},{lat:pts[pts.length-1][1],lng:pts[pts.length-1][0]})>40;
-  const url=OSRM+pts.map(p=>p[0]+","+p[1]).join(";")+
-    "?overview="+(far?"simplified":"full")+"&geometries=geojson";
-  try{
-    const r=await fetch(url);
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const j=await r.json();
-    const c=j.routes&&j.routes[0]&&j.routes[0].geometry&&j.routes[0].geometry.coordinates;
-    if(!c||c.length<2)throw new Error("no geometry");
-    // 5 decimals is about a metre; the raw answer is twice the characters for no
-    // visible difference, and this all has to fit in localStorage on a phone.
-    roadCache[k]=c.map(([x,y])=>[+x.toFixed(5),+y.toFixed(5)]);
-    try{localStorage.setItem(ROADKEY,JSON.stringify(roadCache))}catch(e){}
-    return roadCache[k];
-  }catch(e){roadFailed.add(k);console.warn("road route unavailable, keeping the direct line:",e.message);return null}
+/* The line each leg follows is pre-computed (src/mkroutes.py -> src/routes.json):
+   pavements and pedestrian bridges for a walk, the real monorail and Metro shapes for
+   transit, the road for a cab.  The page used to ask OSRM's demo server at run time,
+   which only answers for cars, so every Strip walk followed the carriageway — and
+   nothing was drawn at all without a signal.  Now the geometry ships with the page and
+   a leg only falls back to a straight line if its key is missing. */
+const legKey=(d,i)=>d+":"+i;
+const legRec=(d,i)=>(ROUTEDATA.legs||{})[legKey(d,i)]||null;
+
+/* Which way he covers a leg is his call, not the itinerary's: the same walk back from
+   the LINQ is 22 minutes on foot, 10 on the monorail or 7 in an Uber, and at 11 PM he
+   wants the last one.  A choice sticks, per leg, until he changes it. */
+const MODEKEY="np-mode";
+let modePick={};try{modePick=JSON.parse(localStorage.getItem(MODEKEY))||{}}catch(e){}
+function legMode(d,i){
+  const r=legRec(d,i),k=legKey(d,i),pick=modePick[k];
+  if(pick&&(!r||r.modes[pick]))return pick;
+  if(r)return r.planned;
+  const D=DAYS.find(x=>x.id===d),stops=stopsOf(D),legs=legsOf(D);
+  return modeOf(legs[i+1],stops[i],stops[i+1]);
 }
-/* One pass per day; switching days bumps the token so a late answer for the old day
-   cannot paint itself over the new one. */
-let roadToken=0;
-async function addRoads(feats,ends){
-  const tok=++roadToken;
-  for(let i=0;i<feats.length;i++){
-    const c=await roadLine(ends[i]);
-    if(tok!==roadToken)return;
-    if(!c)continue;
-    feats[i].geometry.coordinates=c;
-    if(map&&map.getSource("route"))map.getSource("route").setData({type:"FeatureCollection",features:feats});
-  }
+function setLegMode(d,i,m){
+  modePick[legKey(d,i)]=m;
+  try{localStorage.setItem(MODEKEY,JSON.stringify(modePick))}catch(e){}
+  drawRoute();placeMe();renderDays();
 }
+function legData(d,i){const r=legRec(d,i);return r?r.modes[legMode(d,i)]||null:null}
+function legPath(d,i,a,b){
+  const g=(legData(d,i)||{}).geom;
+  return g&&g.length>1?g:[[a.lng,a.lat],[b.lng,b.lat]];
+}
+/* Which way the journey runs.  "1.2 km north-west" is what someone without a car
+   needs at a crossing, and it is also the sanity check on the arrows. */
+const COMPASS=["north","north-east","east","south-east","south","south-west","west","north-west"];
+function bearingOf(a,b){
+  const r=Math.PI/180,dl=(b.lng-a.lng)*r;
+  const y=Math.sin(dl)*Math.cos(b.lat*r);
+  const x=Math.cos(a.lat*r)*Math.sin(b.lat*r)-Math.sin(a.lat*r)*Math.cos(b.lat*r)*Math.cos(dl);
+  return (Math.atan2(y,x)/r+360)%360;
+}
+const headingOf=(a,b)=>COMPASS[Math.round(bearingOf(a,b)/45)%8];
+const kmLabel=d=>d<10?d.toFixed(1):Math.round(d)+"";
+
 function drawRoute(){
   if(!map||!map.getSource("route"))return;
-  const D=DAYS.find(d=>d.id===day),stops=stopsOf(D),legs=legsOf(D),c=CITYCOL[D.city];
-  const feats=[],ends=[];
+  const D=DAYS.find(d=>d.id===day),stops=stopsOf(D),c=CITYCOL[D.city];
+  const feats=[];
   for(let i=0;i<stops.length-1;i++){
     const a=places[stops[i]],b=places[stops[i+1]];
-    const m=modeOf(legs[i+1],stops[i],stops[i+1]);
     const st=i<atIdx?"done":i===atIdx?"now":"next";
-    const pts=[[a.lng,a.lat],[b.lng,b.lat]];
-    feats.push({type:"Feature",properties:{m,st,
+    feats.push({type:"Feature",properties:{m:legMode(day,i),st,
       c:st==="done"?"#5b4f85":st==="now"?"#ffd166":c},
-      geometry:{type:"LineString",coordinates:pts}});
-    ends.push(pts);
+      geometry:{type:"LineString",coordinates:legPath(day,i,a,b)}});
   }
-  if(ROUTES[day]){
-    const pts=ROUTES[day].map(([a,b])=>[b,a]);
-    feats.push({type:"Feature",properties:{m:ROUTEMODE[day]||"transit",st:"next",c:"#c9b6ff"},
-      geometry:{type:"LineString",coordinates:pts}});
-    ends.push(pts);
-  }
+  const ex=extraOf(day);
+  if(ex&&ex.geom)feats.push({type:"Feature",properties:{m:"transit",st:"next",c:"#c9b6ff"},
+    geometry:{type:"LineString",coordinates:ex.geom}});
   map.getSource("route").setData({type:"FeatureCollection",features:feats});
-  if(feats.length)addRoads(feats,ends);
+  flowDash(feats.some(f=>f.properties.st==="now"));
 }
 function placeMe(){
   if(!map)return;
@@ -668,7 +733,7 @@ function placeMe(){
     setPinScale();
   }else meMarker.setLngLat([p.lng,p.lat]);
   // He walks on the spot when the next leg is a walk, and stands still otherwise.
-  const walk=i<stops.length-1&&modeOf(legs[i+1],stops[i],stops[i+1])==="walk";
+  const walk=i<stops.length-1&&legMode(day,i)==="walk";
   if(meEl)meEl.classList.toggle("walking",walk);
 }
 function setAt(i,fly){
@@ -685,11 +750,26 @@ function nextHTML(D,stops,legs){
     <p class="to">Last stop of the day — nothing left to travel to.</p>
     <div class="go">${atIdx?'<button class="back" data-back>\u21b6 Back a stop</button>':""}<button class="back" data-reset>\u21ba Start of day</button></div></div>`;
   const to=places[stops[atIdx+1]],leg=legs[atIdx+1];
-  const m=modeOf(leg,stops[atIdx],stops[atIdx+1]),mins=minsOf(m,stops[atIdx],stops[atIdx+1]);
+  const rec=legRec(day,atIdx),m=legMode(day,atIdx),md=legData(day,atIdx);
+  const mins=md?md.min:minsOf(m,stops[atIdx],stops[atIdx+1]);
+  const dist=md?md.km:km(here,to);
   const gm=m==="walk"?"walking":m==="cab"?"driving":"transit";
+  // The three modes side by side with what each actually costs him in time and money,
+  // because that is the decision he is making, and the plan's own choice is marked.
+  const picks=["walk","transit","cab"].map(x=>{
+    const d=rec&&rec.modes[x];
+    return `<button class="pick ${x}${x===m?" on":""}" data-mode="${x}"${d?"":" disabled"}
+      aria-pressed="${x===m}">${MODEICON[x]}<b>${MODENAME[x]}${rec&&rec.planned===x?'<i>plan</i>':""}</b>
+      <span>${d?`${d.min} min \u00b7 ${kmLabel(d.km)} km`:"\u2014"}</span>
+      <em>${d&&d.fare?esc(d.fare):""}</em></button>`}).join("");
+  const via=md&&md.line?`<p class="via">${esc(md.line)}</p>`:"";
+  const turns=md&&md.steps&&md.steps.length?`<details class="turns"><summary>Step by step</summary>
+    <ol>${md.steps.map(t=>`<li>${esc(t[0])}${t[1]?`<span>${kmLabel(t[1])} km</span>`:""}</li>`).join("")}</ol></details>`:"";
   return `<div class="nextbar">${head}
-   <p class="to">Next: <b>${esc(to.n)}</b>${leg.how?`<span class="how">${esc(leg.how)}</span>`:""}</p>
-   <span class="mode ${m}">${MODEICON[m]}${MODENAME[m]} \u00b7 ~${mins} min</span>
+   <p class="to">Next: <b>${esc(to.n)}</b>
+    <span class="dir">${kmLabel(dist)} km ${headingOf(here,to)} \u00b7 ~${mins} min</span>
+    ${leg.how?`<span class="how">${esc(leg.how)}</span>`:""}</p>
+   <div class="picks">${picks}</div>${via}${turns}
    <div class="go">
     <a href="${gdir(here,to,gm)}" target="_blank" rel="noopener">${m==="walk"?"Walking route":m==="cab"?"Driving route":"Transit route"}</a>
     <a class="uber" href="${uberURL(here,to)}" target="_blank" rel="noopener">Uber</a>
@@ -789,6 +869,8 @@ function renderDays(){
     if(d)d.onclick=()=>{stopFly();setAt(atIdx+1,true)};
     if(b)b.onclick=()=>{stopFly();setAt(atIdx-1,true)};
     if(r)r.onclick=()=>{stopFly();setAt(0,true)};
+    nb.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{
+      if(!b.disabled)setLegMode(day,atIdx,b.dataset.mode)});
   }
   body.querySelectorAll(".chip").forEach(c=>c.onclick=()=>selectDay(c.dataset.d));
   body.querySelectorAll(".step[data-id]").forEach(s=>s.onclick=(e)=>{if(e.target.closest("a")||!map)return;stopFly();if(innerWidth<900)setSheet("small");focus(s.dataset.id)});

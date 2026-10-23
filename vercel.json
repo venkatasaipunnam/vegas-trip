@@ -1,10 +1,16 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm --prefix app ci && npm --prefix app run build && cp index.html app/dist/classic.html",
+  "outputDirectory": "app/dist",
+  "installCommand": "echo skip",
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/index.html",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+      "source": "/(index.html)?",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    },
+    {
+      "source": "/classic.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
     }
   ]
 }

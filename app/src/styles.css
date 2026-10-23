@@ -1,0 +1,253 @@
+:root{
+  --night:#130f22;--panel:rgba(29,23,51,.94);--panel-solid:#1d1733;--line:#3a3160;
+  --sand:#f3e7d3;--muted:#a89cc8;--pink:#ff4fa3;--cyan:#3fe0e8;--amber:#ffb547;
+  --go:#5ee39a;--maybe:#ffd166;--skip:#ff6b6b;
+  --f-display:"Bungee",Impact,"Arial Black",sans-serif;
+  --f-body:"Figtree",-apple-system,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --sheet-h:44vh;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--night);color:var(--sand);font-family:var(--f-body);overflow:hidden}
+#map{position:fixed;inset:0}
+#map .maplibregl-map{position:absolute;inset:0}
+button{font-family:inherit}
+a{color:var(--cyan)}
+
+/* top bar */
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));pointer-events:none}
+.brand{pointer-events:auto;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:14px;padding:8px 12px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.brand h1{margin:0;font:400 17px/1.1 var(--f-display);color:var(--sand);text-shadow:0 0 6px var(--pink),0 0 14px rgba(255,79,163,.55)}
+.brand h1 span{color:var(--cyan);text-shadow:0 0 6px var(--cyan)}
+.brand small{font:500 10.5px var(--f-mono);color:var(--muted);letter-spacing:.06em}
+.ctrls{pointer-events:auto;display:flex;flex-direction:column;gap:6px}
+.ctl{background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--sand);border:1px solid var(--line);border-radius:12px;
+  font:700 12px var(--f-body);padding:9px 11px;min-width:64px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.ctl[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:var(--sand)}
+
+/* sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;height:var(--sheet-h);max-height:calc(100% - 80px);background:var(--panel);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;transition:height .34s cubic-bezier(.2,.8,.2,1)}
+/* While a finger is on the handle the height follows it frame by frame, so the
+   animation has to be off or every move would chase a 340ms ease. */
+.sheet.dragging{transition:none}
+/* A big target: the handle is the whole top strip of the sheet, and touch-action:none
+   is what stops Safari from treating the drag as a page scroll. */
+.grab{border:0;background:none;padding:11px 0 7px;cursor:grab;display:flex;justify-content:center;
+  touch-action:none;flex:0 0 auto}
+.sheet.dragging .grab{cursor:grabbing}
+.grab i{display:block;width:52px;height:5px;border-radius:3px;background:#5a4f86;transition:background .2s}
+.grab:active i,.sheet.dragging .grab i{background:var(--sand)}
+.tabs{display:flex;gap:6px;padding:0 max(14px,env(safe-area-inset-left,0px)) 8px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:700 13px var(--f-body);padding:8px 4px;border-radius:10px;cursor:pointer}
+.tab[aria-selected="true"]{background:#2b2349;color:var(--sand)}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 18px) max(14px,env(safe-area-inset-left,0px))}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--sand);font:700 12px var(--f-body);padding:7px 11px;border-radius:999px;cursor:pointer}
+.chip small{font:500 10px var(--f-mono);color:var(--muted);margin-left:3px}
+.chip[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:var(--sand)}
+.chip[aria-pressed="true"] small{color:#5a4f86}
+.dayhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 10px}
+.dayhead h2{margin:0;font:400 17px/1.2 var(--f-display);letter-spacing:.02em}
+.win{display:inline-block;font:700 11px var(--f-mono);color:var(--go);background:rgba(94,227,154,.12);padding:3px 8px;border-radius:6px;margin-top:4px}
+.fly{flex:0 0 auto;border:0;border-radius:12px;padding:10px 12px;font:800 12px var(--f-body);color:var(--night);background:linear-gradient(135deg,var(--pink),var(--amber));cursor:pointer;box-shadow:0 0 16px rgba(255,79,163,.45)}
+.fly.stop{background:var(--sand)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.step{display:grid;grid-template-columns:28px 52px 1fr;gap:8px;align-items:start;padding:10px;border-radius:12px;background:rgba(19,15,34,.55);cursor:pointer;border:1px solid transparent}
+.step.on{border-color:var(--pink);box-shadow:0 0 14px rgba(255,79,163,.25)}
+.step.noplace{cursor:default}
+.n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 11px var(--f-mono);color:var(--night);background:var(--pink)}
+.n.blank{background:#3a3160;color:var(--muted)}
+.t{font:700 12px var(--f-mono);color:var(--amber);padding-top:3px}
+.txt{font-size:14px;line-height:1.45}
+.txt .how{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.tag{font:700 10px var(--f-mono);padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:1px}
+.cab{background:rgba(255,181,71,.2);color:var(--amber)}
+.book{background:rgba(255,79,163,.2);color:var(--pink)}
+h3{margin:14px 0 8px;font-size:15px}
+.ride{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:9px;border-radius:10px;background:rgba(19,15,34,.55);margin-bottom:6px}
+.v{font:800 10.5px var(--f-mono);text-align:center;padding:4px 0;border-radius:6px;color:var(--night);align-self:start}
+.v-go{background:var(--go)}.v-maybe{background:var(--maybe)}.v-skip{background:var(--skip)}
+.ride b{display:block;font-size:14px}.ride span{font-size:12.5px;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.tl li{position:relative;font-size:13.5px;line-height:1.45}
+.tl li::before{content:"";position:absolute;left:-20px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.tl .t{display:block;padding:0}
+.card{background:rgba(19,15,34,.55);border-radius:12px;padding:12px;margin-bottom:8px;font-size:13.5px;line-height:1.45}
+.card b{display:block;margin-bottom:2px;font-size:14px}
+.verdict{border-left:4px solid var(--amber);background:rgba(255,181,71,.1);padding:10px 12px;border-radius:0 10px 10px 0;font-size:13.5px;line-height:1.45;margin-bottom:10px}
+.note{font-size:12px;color:var(--muted)}
+
+/* markers */
+/* Teardrop pin carrying an icon for what the place is. MapLibre writes its own
+   transform onto the element it is given, so the pin lives in a wrapper and does
+   its rotating there. The pin is 34px square; rotating it -45deg puts the square
+   corner 24px below centre, so translateY(-24px) lands that tip on the coordinate. */
+/* position:absolute, not relative: MapLibre positions a marker purely with a transform
+   and relies on its own .maplibregl-marker{position:absolute}.  This stylesheet loads
+   after maplibre-gl.css, so a relative here put every pin back in normal flow and each
+   one was painted up to 200px BELOW the place it belongs to. */
+.mkwrap{width:34px;height:34px;cursor:pointer;position:absolute;top:0;left:0;will-change:transform}
+/* A pin drawn at a fixed pixel size reads as page furniture: zoom out and 26 full-size
+   teardrops cover the city. --mks is rewritten from the map's zoom (see setPinScale),
+   so a pin grows as you come in and shrinks as you pull back, like a real map label.
+   The scale lives on its own layer because the tip of the pin lands exactly on the
+   wrapper's centre, so scaling about 50% 50% leaves the tip on its coordinate. */
+.mkscale{position:absolute;inset:0;transform:scale(var(--mks,1));transform-origin:50% 50%}
+.mkwrap.dim .mkscale{transform:scale(calc(var(--mks,1) * .74))}
+/* No backdrop-filter here: MapLibre moves every marker on every frame of a pinch or
+   zoom, and re-blurring what is behind 20-odd pins each frame is what made them lag
+   behind the map on a phone.  A baked gradient looks the same and costs nothing. */
+.mk{position:absolute;inset:0;border-radius:50% 50% 50% 0;transform:translateY(-24px) rotate(-45deg);
+  display:grid;place-items:center;color:#0a0714;
+  background:linear-gradient(145deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 58%),var(--cbg);
+  border:1.5px solid rgba(255,255,255,.72);
+  box-shadow:0 0 0 2px rgba(10,7,20,.82),inset 0 1px 0 rgba(255,255,255,.55),
+    0 6px 14px rgba(0,0,0,.45),0 0 18px var(--c)}
+.mk svg{width:18px;height:18px;transform:rotate(45deg);fill:none;stroke:currentColor;
+  stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.85))}
+/* Only the stop you are looking at pulses; a ring on every stop at once is noise. */
+.mk.active::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--c);animation:ping 2.2s ease-out infinite;pointer-events:none}
+@keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.2);opacity:0}}
+.mk.dim{opacity:.72}
+.mk.dim svg{stroke-width:2.8}
+
+/* me: a standing figure on the stop Sai is at right now.  Not a badge with a glyph in
+   it — an actual little person, drawn twice (a dark ink pass under a green skin pass)
+   so he stays readable on satellite imagery, with his head, arms and legs in their own
+   groups so they can move.  Idle: he breathes and sways.  While the next leg is a walk
+   his legs and arms swing, so the figure says what he is about to do. */
+.mewrap{width:44px;height:58px;pointer-events:none;will-change:transform;position:absolute;top:0;left:0;z-index:3}
+.mescale{position:absolute;inset:0;transform:scale(var(--mks,1));transform-origin:50% 100%}
+/* The nudge that keeps the figure clear of the stop's own pin.  A CSS transform off
+   the same --mks as the scale, so it shrinks with him instead of drifting as the map
+   zooms — the marker's own offset would only catch up at the end of a pinch. */
+.menudge{position:absolute;inset:0;transform:translateX(calc(25px * var(--mks,1)))}
+.me{position:absolute;left:0;right:0;bottom:0;height:100%;display:block}
+.me svg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:34px;height:54px;overflow:visible}
+.me .ink,.me .skin{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.me .ink{stroke:#0a0714;stroke-width:7}
+.me .ink circle{fill:#0a0714;stroke-width:3.4}
+.me .skin{stroke:var(--go);stroke-width:4.2;filter:drop-shadow(0 0 7px rgba(94,227,154,.75))}
+.me .skin circle{fill:var(--go);stroke-width:0}
+.meground{fill:rgba(10,7,20,.5)}
+.mefig{animation:breathe 3.2s ease-in-out infinite}
+.mearm-l{transform-origin:100% 0}.mearm-r{transform-origin:0 0}
+.meleg-l{transform-origin:100% 0}.meleg-r{transform-origin:0 0}
+.mearm-l,.mearm-r,.meleg-l,.meleg-r,.mefig{transform-box:fill-box}
+.mearm-l{animation:swayA 3.2s ease-in-out infinite}
+.mearm-r{animation:swayB 3.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-1.1px) rotate(.8deg)}}
+@keyframes swayA{0%,100%{transform:rotate(3deg)}50%{transform:rotate(-4deg)}}
+@keyframes swayB{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+/* walking: a quick stride, arms opposite the legs */
+.mewrap.walking .mefig{animation:bob .62s ease-in-out infinite}
+.mewrap.walking .mearm-l{animation:strideA .62s ease-in-out infinite}
+.mewrap.walking .mearm-r{animation:strideB .62s ease-in-out infinite}
+.mewrap.walking .meleg-l{animation:strideB .62s ease-in-out infinite}
+.mewrap.walking .meleg-r{animation:strideA .62s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.2px)}}
+@keyframes strideA{0%,100%{transform:rotate(22deg)}50%{transform:rotate(-22deg)}}
+@keyframes strideB{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+.mering{position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);width:36px;height:15px;border-radius:50%;
+  border:2px solid var(--go);animation:standing 2.4s ease-out infinite}
+@keyframes standing{from{transform:translateX(-50%) scale(.5);opacity:.85}to{transform:translateX(-50%) scale(1.9);opacity:0}}
+
+/* next-leg bar: where you are, where you go next, and how */
+.nextbar{margin:0 0 10px;padding:10px 11px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(94,227,154,.1),rgba(19,15,34,.65))}
+.nextbar .at{display:flex;align-items:center;gap:7px;font:700 11px var(--f-mono);color:var(--go);
+  letter-spacing:.04em;text-transform:uppercase}
+.nextbar .at svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.nextbar .to{margin:5px 0 0;font-size:14.5px;line-height:1.3}
+.nextbar .to b{color:var(--sand)}
+.nextbar .how{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.nextbar .dir{display:block;font:700 11px var(--f-mono);color:var(--cyan);margin-top:4px;letter-spacing:.03em}
+/* Walk / Transit / Cab, each with its own time, distance and fare. */
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.picks .pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;
+  border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.045);color:var(--sand);
+  cursor:pointer;text-align:left;font:inherit;min-width:0}
+.picks .pick svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.picks .pick b{font:800 11.5px var(--f-body);display:flex;align-items:center;gap:4px}
+.picks .pick b i{font:800 8px var(--f-mono);font-style:normal;letter-spacing:.08em;text-transform:uppercase;
+  padding:1px 3px;border-radius:4px;background:rgba(255,255,255,.16)}
+.picks .pick span{font:700 9.5px var(--f-mono);color:var(--muted);white-space:nowrap}
+.picks .pick em{font:600 9px var(--f-body);font-style:normal;color:var(--muted);opacity:.9;line-height:1.2}
+.picks .pick[disabled]{opacity:.32;cursor:default}
+.picks .pick.on{border-color:transparent;color:var(--night)}
+.picks .pick.on span,.picks .pick.on em{color:rgba(10,7,20,.72)}
+.picks .pick.on b i{background:rgba(10,7,20,.18)}
+.picks .pick.on.walk{background:var(--go)}
+.picks .pick.on.transit{background:var(--cyan)}
+.picks .pick.on.cab{background:var(--amber)}
+.nextbar .via{margin:7px 0 0;font:700 11px var(--f-mono);color:var(--sand)}
+.turns{margin-top:7px}
+.turns summary{font:800 10.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer}
+.turns ol{margin:6px 0 0;padding-left:17px;display:flex;flex-direction:column;gap:3px}
+.turns li{font-size:12px;color:var(--sand);line-height:1.35}
+.turns li span{font:700 10px var(--f-mono);color:var(--muted);margin-left:5px}
+.mode{display:inline-flex;align-items:center;gap:5px;font:800 10.5px var(--f-mono);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--night);padding:3px 8px;border-radius:6px;margin-top:6px}
+.mode svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.mode.walk{background:var(--go)}.mode.transit{background:var(--cyan)}.mode.cab{background:var(--amber)}
+.go{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.go a,.go button{font:800 12px var(--f-body);text-decoration:none;border:0;cursor:pointer;
+  padding:8px 11px;border-radius:10px;color:var(--night);background:var(--sand)}
+.go a.uber{background:#0a0714;color:#fff;border:1px solid rgba(255,255,255,.35)}
+.go a.lyft{background:#ff00bf;color:#fff}
+.go .done{background:linear-gradient(135deg,var(--go),var(--cyan));box-shadow:0 0 14px rgba(94,227,154,.4)}
+.go .back{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.step.walked{opacity:.5}
+.step.walked .n{background:#3a3160;color:var(--muted)}
+.step.here{border-color:var(--go);box-shadow:0 0 14px rgba(94,227,154,.28)}
+
+/* legend */
+.legend{position:fixed;left:10px;bottom:calc(var(--sheet-h) + 14px);z-index:5;pointer-events:auto;
+  background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);
+  border-radius:12px;padding:9px 11px;box-shadow:0 6px 18px rgba(0,0,0,.35);max-width:min(78vw,280px);
+  max-height:min(52vh,330px);overflow:auto}
+.legend[hidden]{display:none}
+.legend h2{margin:0 0 6px;font:800 10px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.legend li{display:flex;align-items:center;gap:6px;font:600 10.5px var(--f-body);color:var(--sand)}
+.legend ul.two{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
+.legend i{width:11px;height:11px;border-radius:50%;flex:0 0 auto;border:2px solid #130f22;box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+.legend svg{width:13px;height:13px;flex:0 0 auto;fill:none;stroke:var(--sand);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.legend h2+ul{margin-bottom:8px}
+@media (min-width:900px){.legend{left:auto;right:10px;bottom:14px;max-width:300px}}
+
+/* popup */
+.maplibregl-popup-content{background:var(--panel-solid);color:var(--sand);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:var(--f-body)}
+.maplibregl-popup-tip{border-top-color:var(--panel-solid)!important;border-bottom-color:var(--panel-solid)!important}
+.maplibregl-popup-close-button{color:var(--muted);font-size:20px;padding:2px 8px}
+.pop .cat{font:700 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--night);padding:2px 7px;border-radius:5px;display:inline-block}
+.pop h4{margin:6px 0 6px;font-size:16px;padding-right:18px}
+.pop ul{margin:0 0 6px;padding-left:16px;font-size:13px;line-height:1.4}
+.pop p{margin:4px 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.pop p b{color:var(--sand)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btns a{text-decoration:none;font:700 12px var(--f-body);padding:7px 10px;border-radius:9px;color:var(--night)}
+.b1{background:var(--cyan)}.b2{background:var(--sand)}.b3{background:var(--amber)}.b4{background:var(--go)}
+.maplibregl-ctrl-attrib{font-size:9px}
+.lk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.lk a{font:700 11px var(--f-body);text-decoration:none;color:var(--night);background:var(--cyan);padding:4px 8px;border-radius:7px}
+.lk a.e{background:var(--amber)}
+.nomap{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 76px);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45}
+.nomap b{color:var(--amber)}
+
+@media (min-width:900px){
+  .sheet{left:max(12px,env(safe-area-inset-left,0px));right:auto;top:96px;bottom:12px;width:400px;height:auto!important;max-height:none;border-radius:20px}
+  .grab{display:none}
+  .tabs{padding-top:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .mk.active::after,.mering,.mefig,.mearm-l,.mearm-r,.meleg-l,.meleg-r,
+  .mewrap.walking .mefig,.mewrap.walking .mearm-l,.mewrap.walking .mearm-r,
+  .mewrap.walking .meleg-l,.mewrap.walking .meleg-r{animation:none}
+  .sheet{transition:none}
+}

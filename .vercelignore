@@ -1,8 +1,12 @@
-# Only the site itself and the offline exports get published.
-# Build sources, the old prototype and the handoff notes (which hold Sai's
-# booking details) stay local.
-src/
-legacy/
-.claude/
-CLAUDE.md
-CLAUDE 2.md
+# Vercel serves app/dist, so this list is not about hiding anything from the public —
+# only about what the build is allowed to not have.  Every pattern is anchored with a
+# leading slash: .vercelignore matches like .gitignore, so a bare "src/" also matched
+# app/src/, the app's own source never reached the build, and Rollup failed with
+# "could not resolve /src/main.tsx".
+#
+# /src stays IN the deployment source: the React app imports the trip content from it
+# (data.json and routes.json, via the @trip alias).
+/legacy/
+/.claude/
+/CLAUDE.md
+/CLAUDE 2.md
