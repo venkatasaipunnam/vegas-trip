@@ -7,6 +7,11 @@ Owner: **Sai** (GitHub: `venkatasaipunnam`). Sai is on an **iPhone** during the 
 A website Sai can open on his iPhone that feels like a real 3D map ("like Google Maps, like I'm living in the city"):
 real streets, satellite view, tilting 3D buildings, his day-by-day plan, and tap-to-navigate for every stop.
 
+**Two front ends now:** `app/` (Vite + React + TypeScript) is what Vercel serves at the
+root, and the original single-file `index.html` is served at `/classic.html` as a
+fallback.  Everything below about the map, the data model and the trip itself applies to
+both; the React app is described under "The React app (app/)".
+
 **Hosting: Vercel, not GitHub Pages.** Pages was enabled on Oct 22, 2026 and switched off the
 same day at Sai's request — he wants the site served only from Vercel. GitHub stays as the
 code remote, and Vercel deploys from it, so every push to `master` redeploys.
@@ -27,6 +32,42 @@ gestures, geolocation (needs HTTPS, which Vercel provides) and home-screen insta
 | `exports/Sai-Vegas-LA-Trip-Guide.pdf` | Done. 18 phone-sized pages, works offline, tappable Map/Directions/Apple Maps/3D links. |
 | `exports/Sai-Vegas-LA-Trip.kml` | Done. 9 folders (one per day + extras), 22 placemarks. Import into Google My Maps (desktop) or open in Google Earth. |
 | `legacy/artifact-trip-map.html` | First version (claude.ai artifact, hand-drawn SVG map). Sai found it too basic. Kept for reference only. |
+
+## The React app (app/) — the version Sai will use from now on
+
+Sai asked twice for the UI to move to a framework, so `app/` is the real front end and
+the single-file page is kept as a fallback.  Vercel builds `app/` and serves it at the
+root; `index.html` (the old page) is copied to **`/classic.html`**, so if the new app
+ever misbehaves in the desert there is a working page one URL away.
+
+```
+npm --prefix app install        # once
+npm --prefix app run dev        # http://localhost:8756  (or: preview "trip-app")
+npm --prefix app run build      # type-checks, then builds app/dist
+```
+
+- **Vite 5 + React 18 + TypeScript (strict).**  `react-map-gl@7.1.7`'s maplibre entry
+  (`react-map-gl/maplibre`) over **maplibre-gl 4.7.1**, so the map is declarative:
+  `<Source>` / `<Layer>` / `<Marker>` / `<Popup>` instead of imperative `addLayer`
+  calls.  Terrain, the 3D-building layer, the arrow bitmap and the `--mks` pin scale
+  stay imperative inside `MapView` — they need the map instance, and the pin scale has
+  to be written per zoom frame without a re-render.
+- **zustand** (`src/store.ts`) holds day, progress, chosen modes, the toggles and the
+  focus target.  It writes to the *same* localStorage keys as the old page
+  (`np-progress`, `np-mode`), so a phone that already has his place in the day keeps it.
+- **One copy of the trip content.**  `vite.config.ts` aliases `@trip` to the repo's
+  `src/`, so the app imports `src/data.json` and `src/routes.json` directly; the Python
+  scripts and the classic page read the same files.  `src/types.ts` types them, which is
+  what turns a typo in the plan into a build error instead of a blank screen.
+- **Components:** `map/MapView` (map, terrain, camera, popup, fly-through),
+  `map/RouteLayers` (the six route layers + arrows), `map/Pins`, `map/Me` (the figure),
+  `ui/Sheet` (drag and snap), `ui/Days`, `ui/NextBar` (the mode switch),
+  `ui/Universal`, `ui/Tips`, `ui/Legend`, `ui/Top`, `ui/Icons`.
+- **`src/styles.css` is the old page's stylesheet, unchanged,** because the class names
+  were kept.  The only additions are `.menudge` (the figure's sideways nudge, now a CSS
+  transform off `--mks` instead of a marker offset) and a rule to size the map canvas.
+- The bundle is ~1.1 MB (307 KB gzipped), with maplibre-gl split into its own chunk so a
+  content edit does not make the phone re-download the engine.
 
 ## Terrain: why it is conditional
 `setTerrain` is what makes the Grand Canyon read as 3D, but it must not be on for close-up
