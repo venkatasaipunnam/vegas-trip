@@ -7,16 +7,18 @@ Owner: **Sai** (GitHub: `venkatasaipunnam`). Sai is on an **iPhone** during the 
 A website Sai can open on his iPhone that feels like a real 3D map ("like Google Maps, like I'm living in the city"):
 real streets, satellite view, tilting 3D buildings, his day-by-day plan, and tap-to-navigate for every stop.
 
-**Immediate next step:** publish `index.html` to GitHub Pages at
-`https://venkatasaipunnam.github.io/vegas-trip/` and confirm it loads.
+**Live at `https://venkatasaipunnam.github.io/vegas-trip/`** (GitHub Pages, branch `master`,
+folder `/ (root)`, enabled Oct 22, 2026; HTTPS, so geolocation works).
+**Next step:** open it on Sai's own iPhone and check touch gestures, geolocation and
+home-screen install.
 
 ## Current status
 | Item | Status |
 |---|---|
 | `index.html` (3D map site) | Done and **tested live with real tiles** (local server, Chromium, iPhone-sized and desktop viewports): streets, labels, 3D buildings, satellite, Grand Canyon terrain, markers, popups, day switching and all three tabs render with no console errors. Not yet tested on a real iPhone. |
-| GitHub repo `venkatasaipunnam/vegas-trip` | Created by Sai, **public**. Was empty at 18:21 ET; Sai may have pushed a README (`git branch -M master`). Pull before pushing. Default branch: **master**. |
+| GitHub repo `venkatasaipunnam/vegas-trip` | **public**, default branch `master`, pushed from this machine with Sai's own git credentials (`gh` is not logged in; the Pages API call used the token from the git credential helper). |
 | Push from claude.ai | Refused (Claude GitHub App not installed on the repo). Claude Code on Sai's machine uses his own git credentials, so this should work. |
-| GitHub Pages | Not enabled yet. Use branch `master`, folder `/ (root)`. Sai chose to publish **as is** (public, hotel names included). |
+| GitHub Pages | **Live** on branch `master`, folder `/ (root)`. Published as is (public, hotel names included). Verified over HTTPS at phone width: tiles, 3D buildings, route legs, the standing figure and the next-leg bar all render. |
 | `exports/Sai-Vegas-LA-Trip-Guide.pdf` | Done. 18 phone-sized pages, works offline, tappable Map/Directions/Apple Maps/3D links. |
 | `exports/Sai-Vegas-LA-Trip.kml` | Done. 9 folders (one per day + extras), 22 placemarks. Import into Google My Maps (desktop) or open in Google Earth. |
 | `legacy/artifact-trip-map.html` | First version (claude.ai artifact, hand-drawn SVG map). Sai found it too basic. Kept for reference only. |
