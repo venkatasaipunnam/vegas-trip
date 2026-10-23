@@ -1,7 +1,7 @@
 import { CITYCOL } from "../data";
 import { atOf, useTrip } from "../store";
 import { legOf } from "../lib/legs";
-import { gdir, headingOf, km, kmLabel, lyftURL, roughMins, uberURL } from "../lib/geo";
+import { gdir, headingOf, km, kmLabel, lyftURL, minsLabel, roughMins, uberURL } from "../lib/geo";
 import { ModeIcon, PersonIcon } from "./Icons";
 import type { ModeKey, Place } from "../types";
 
@@ -48,7 +48,7 @@ export default function NextBar({ stops }: { stops: string[] }) {
       <Head name={here.n} />
       <p className="to">
         Next: <b>{to.n}</b>
-        <span className="dir">{kmLabel(dist)} km {headingOf(here, to)} · ~{mins} min</span>
+        <span className="dir">{kmLabel(dist)} km {headingOf(here, to)} · ~{minsLabel(mins)}</span>
         {leg.how && <span className="how">{leg.how}</span>}
       </p>
 
@@ -65,7 +65,7 @@ export default function NextBar({ stops }: { stops: string[] }) {
             >
               <ModeIcon m={x} />
               <b>{MODENAME[x]}{planned === x && <i>plan</i>}</b>
-              <span>{d ? `${d.min} min · ${kmLabel(d.km)} km` : "—"}</span>
+              <span>{d ? `${minsLabel(d.min)} · ${kmLabel(d.km)} km` : "—"}</span>
               <em>{d?.fare ?? ""}</em>
             </button>
           );

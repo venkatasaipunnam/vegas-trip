@@ -6,7 +6,7 @@ import Map, {
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import { CATS, CITYCOL, places } from "../data";
-import { dirUrl, kmLabel, rideUrl } from "../lib/geo";
+import { dirUrl, kmLabel, minsLabel, rideUrl } from "../lib/geo";
 import { liveRoute, type LiveRoute, type Point } from "../lib/route";
 import type { Hit } from "../lib/search";
 import { ICONS, PLACEICONS } from "../map/pinIcons";
@@ -255,7 +255,7 @@ export default function Explore() {
             {(mode === "walk" || mode === "car") && route && (
               <>
                 <p className="rsum">
-                  <b>{route.min} min</b> · {kmLabel(route.km)} km
+                  <b>{minsLabel(route.min)}</b> · {kmLabel(route.km)} km
                   <span>{mode === "walk" ? "on foot" : "driving"}</span>
                 </p>
                 {!!route.steps.length && (
