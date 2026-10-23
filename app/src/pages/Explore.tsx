@@ -129,15 +129,18 @@ export default function Explore() {
     if (!m || !ready) return;
     const pts: [number, number][] = route
       ? route.geom
-      : mine ? Object.values(places).map((p) => [p.lng, p.lat]) : [];
+      : from && to ? [[from.lng, from.lat], [to.lng, to.lat]]
+        : from ? [[from.lng, from.lat]]
+          : to ? [[to.lng, to.lat]]
+            : mine ? Object.values(places).map((p) => [p.lng, p.lat]) : [];
     if (!pts.length) return;
     const b = pts.reduce((acc, p) => acc.extend(p), new maplibregl.LngLatBounds(pts[0], pts[0]));
     m.fitBounds(b, {
       padding: { top: 300, bottom: 70, left: 40, right: 40 },
-      duration: route ? 1400 : 0,
-      maxZoom: route ? 16 : 11,
+      duration: route || from || to ? 1400 : 0,
+      maxZoom: route ? 16 : from && to ? 15 : from || to ? 15.5 : 11,
     });
-  }, [route, ready, mine]);
+  }, [route, ready, mine, from, to]);
 
   const ends = from && to;
   const transitHandoff = () => {
@@ -243,6 +246,20 @@ export default function Explore() {
             </Popup>
           )}
 
+          {/* The two ends, pinned.  Choosing a start and a destination drew the line but
+              left the ends unmarked, so there was nothing on the map to say which end was
+              which — or where a searched place actually was before a mode was picked. */}
+          {from && (
+            <Marker longitude={from.lng} latitude={from.lat} anchor="bottom">
+              <div className="endpin start"><b>A</b><i>{from.name}</i></div>
+            </Marker>
+          )}
+          {to && (
+            <Marker longitude={to.lng} latitude={to.lat} anchor="bottom">
+              <div className="endpin end"><b>B</b><i>{to.name}</i></div>
+            </Marker>
+          )}
+
           {live && (
             <Marker longitude={live.lng} latitude={live.lat} anchor="center">
               <div className="livedot" aria-label="You are here" />
@@ -255,19 +272,19 @@ export default function Explore() {
         <div className="fhead">
           <h1>Neon <span>&amp;</span> Pacific</h1>
           <nav className="flinks">
-            {user && <Link to="/trip">Vegas plan</Link>}
+            {mine && <Link to="/trip">Vegas plan</Link>}
             <Link className="toplan" to="/plans">{user ? "My plans →" : "Sign in →"}</Link>
           </nav>
         </div>
 
         <PlaceField
-          label="From" icon="◉" value={from} near={live}
+          label="From" icon="◉" value={from} near={live} mine={mine}
           locating={locating && !from}
           onUseLocation={useMyLocation}
           onPick={(h: Hit | null) => { touched.current = true; setFrom(h); }}
         />
         <PlaceField
-          label="To" icon="▲" value={to} near={live ?? from}
+          label="To" icon="▲" value={to} near={live ?? from} mine={mine}
           onPick={(h: Hit | null) => setTo(h)}
         />
 

@@ -30,10 +30,20 @@ export default function Login() {
   };
 
   return (
-    <div className="page">
+    <div className="page authpage">
       <div className="card auth">
-        <h1>Neon <span>&amp;</span> Pacific</h1>
-        <p className="sub">{mode === "in" ? "Sign in to your plans" : "Make a new profile"}</p>
+        <div className="authtop">
+          <h1>Neon <span>&amp;</span> Pacific</h1>
+          <p className="tagline">Your trips, mapped</p>
+        </div>
+
+        {/* A pair of tabs rather than a link that quietly changes what the button does. */}
+        <div className="segmented" role="tablist">
+          <button role="tab" aria-selected={mode === "in"}
+            onClick={() => { setMode("in"); setErr(null); }}>Sign in</button>
+          <button role="tab" aria-selected={mode === "new"}
+            onClick={() => { setMode("new"); setErr(null); }}>New profile</button>
+        </div>
 
         <form onSubmit={submit}>
           <label className="lf">
@@ -47,21 +57,21 @@ export default function Login() {
               autoComplete={mode === "in" ? "current-password" : "new-password"} />
           </label>
           {err && <p className="bad">{err}</p>}
-          <button className="btn done" disabled={busy} type="submit">
+          <button className="btn done wide" disabled={busy} type="submit">
             {busy ? "One moment…" : mode === "in" ? "Sign in" : "Create profile"}
           </button>
         </form>
 
-        <button className="linky" onClick={() => { setMode(mode === "in" ? "new" : "in"); setErr(null); }}>
-          {mode === "in" ? "No profile yet? Make one" : "I already have a profile"}
-        </button>
+        <details className="fineprint">
+          <summary>Where does this sign-in go?</summary>
+          <p>
+            Nowhere. Profiles live in this browser, on this device — there is no server
+            behind this site. Your password is kept only as a PBKDF2 digest, never in the
+            clear, but anyone holding this unlocked device can read the plans saved here,
+            and clearing site data deletes them. Use a password you do not use elsewhere.
+          </p>
+        </details>
 
-        <p className="fine">
-          Profiles live in this browser, on this device — there is no server behind this
-          site. Your password is stored only as a PBKDF2 digest, never in the clear, but
-          anyone holding this unlocked device can read the plans saved here. Use a
-          password you do not use anywhere else.
-        </p>
         <Link className="linky" to="/">← Back to the map</Link>
       </div>
     </div>

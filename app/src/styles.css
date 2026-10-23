@@ -490,3 +490,58 @@ h3{margin:14px 0 8px;font-size:15px}
 h2.planname{margin:0;font:400 16px var(--f-display);color:var(--sand);overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
 .nextbar .mode{color:var(--night)}
+
+/* The start and the destination, marked A and B. */
+.endpin{position:relative;display:flex;align-items:center;gap:6px;pointer-events:none;
+  transform:translateY(-6px)}
+.endpin b{width:26px;height:26px;flex:0 0 auto;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  display:grid;place-items:center;font:800 12px var(--f-body);color:var(--night);
+  border:2px solid rgba(10,7,20,.8);box-shadow:0 4px 12px rgba(0,0,0,.45)}
+.endpin b::after{content:"";position:absolute}
+.endpin.start b{background:var(--go)}
+.endpin.end b{background:#3d8bff;color:#fff}
+.endpin i{font:800 10.5px var(--f-body);font-style:normal;color:var(--sand);background:var(--panel-solid);
+  border:1px solid var(--line);padding:3px 7px;border-radius:7px;white-space:nowrap;max-width:46vw;
+  overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.endpin b>span{transform:rotate(45deg)}
+
+/* Plan chips: a row of buttons, not a select that can disagree with the page. */
+.planpick{display:flex;align-items:center;gap:8px;margin:0 0 10px;min-width:0}
+.planpick>span{flex:0 0 auto;font:800 9px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ppscroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;
+  scrollbar-width:none}
+.ppscroll::-webkit-scrollbar{display:none}
+.ppchip{flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:700 11.5px var(--f-body);padding:7px 11px;border-radius:9px;cursor:pointer;text-decoration:none;
+  max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ppchip[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:transparent}
+.ppchip.ghost{color:var(--cyan)}
+
+/* Sign-in and the new-trip form: the two pages Sai called odd.  Both were a bare form on
+   a dark page; they get a centred card, a proper tab pair, and the small print folded
+   away rather than shouted. */
+.authpage{justify-content:center}
+.authtop{text-align:center;margin-bottom:2px}
+.authtop h1{font-size:23px}
+.tagline{margin:6px 0 0;font:700 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.segmented{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.segmented button{border:0;background:transparent;color:var(--muted);cursor:pointer;
+  font:800 12.5px var(--f-body);padding:9px 8px;border-radius:9px}
+.segmented button[aria-selected="true"]{background:var(--sand);color:var(--night)}
+.fineprint{border-top:1px solid var(--line);padding-top:9px}
+.fineprint summary{cursor:pointer;font:700 11px var(--f-body);color:var(--cyan);list-style:none}
+.fineprint summary::-webkit-details-marker{display:none}
+.fineprint summary::before{content:"ⓘ ";}
+.fineprint p{margin:7px 0 0;font:600 11.5px/1.55 var(--f-body);color:var(--muted)}
+.card.newtrip h2{margin:0;font:400 15px var(--f-display);color:var(--sand)}
+/* One row: the stray number box on a line of its own looked like a mistake. */
+.daypick{display:flex;gap:5px;align-items:center;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.daypick::-webkit-scrollbar{display:none}
+.dp,.daypick input{flex:0 0 auto}
+.dp{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);
+  color:var(--sand);font:800 13px var(--f-body);cursor:pointer}
+.dp.on{background:var(--cyan);color:var(--night);border-color:transparent}
+.daypick input{width:62px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sand);
+  font:700 13px var(--f-mono);padding:9px 8px;border-radius:10px;text-align:center}
+.daypick input:focus{outline:none;border-color:var(--cyan)}

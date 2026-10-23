@@ -6,6 +6,7 @@ import Map, {
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import { currentUser } from "../lib/accounts";
+import { OWNER_USER } from "../lib/plans";
 import { getPlan, savePlan, uid, type Plan, type PlanDay, type Stop } from "../lib/plans";
 import { ICON_COLOUR, ICON_GROUPS, ICON_LABEL, iconSvg, tint, type IconKey } from "../lib/icons";
 import { geocode, tripHits, type Hit } from "../lib/search";
@@ -58,7 +59,7 @@ export default function PlanEditor() {
 
   // Search: his own stops answer instantly, the geocoder fills in everywhere else.
   useEffect(() => {
-    const local = tripHits(q, 4);
+    const local = tripHits(q, 4, currentUser() === OWNER_USER);
     setHits(local);
     if (q.trim().length < 3) return;
     const ac = new AbortController();

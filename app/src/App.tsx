@@ -17,7 +17,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Explore />} />
-        <Route path="/trip" element={<RequireUser><Trip /></RequireUser>} />
+        <Route path="/trip" element={<RequireUser owner><Trip /></RequireUser>} />
         <Route path="/login" element={<Login />} />
         <Route path="/plans" element={<Plans />} />
         <Route path="/plans/:id" element={<PlanEditor />} />

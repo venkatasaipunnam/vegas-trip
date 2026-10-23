@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { currentUser, signOut } from "../lib/accounts";
-import { OWNER_USER, deletePlan, duplicatePlan, emptyPlan, listPlans, savePlan, seedOwner, vegasPlan, type Plan } from "../lib/plans";
+import { OWNER_USER, deletePlan, duplicatePlan, emptyPlan, listPlans, savePlan, seedOwner, uid, vegasPlan, type Plan } from "../lib/plans";
 
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -15,6 +15,7 @@ export default function Plans() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState("");
+  const [days, setDays] = useState(1);
 
   useEffect(() => {
     seedOwner();
@@ -29,6 +30,11 @@ export default function Plans() {
   const create = () => {
     if (!user) return;
     const p = emptyPlan(name);
+    // A trip is however many days he says it is; the editor opens with them ready rather
+    // than making him press "+ Day" before he can write anything down.
+    for (let i = 1; i < Math.max(1, Math.min(days, 21)); i++) {
+      p.days.push({ id: uid(), title: `Day ${i + 1}`, stops: [] });
+    }
     savePlan(user, p);
     nav(`/plans/${p.id}`);
   };
@@ -46,20 +52,31 @@ export default function Plans() {
       </div>
 
       {naming ? (
-        <div className="card">
+        <div className="card newtrip">
+          <h2>New trip</h2>
           <label className="lf">
-            <span>Name this trip</span>
-            <input autoFocus value={name} placeholder="Weekend in Vegas"
+            <span>What is it called?</span>
+            <input autoFocus value={name} placeholder="Weekend in Sedona"
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && create()} />
           </label>
+          <label className="lf">
+            <span>How many days?</span>
+            <span className="daypick">
+              {[1, 2, 3, 4, 5, 7].map((n) => (
+                <button key={n} className={`dp${days === n ? " on" : ""}`} onClick={() => setDays(n)}>{n}</button>
+              ))}
+              <input type="number" min={1} max={21} value={days}
+                onChange={(e) => setDays(Math.max(1, Math.min(21, +e.target.value || 1)))} />
+            </span>
+          </label>
           <div className="row2">
-            <button className="btn done" onClick={create}>Create</button>
+            <button className="btn done" onClick={create}>Create &amp; add stops</button>
             <button className="btn ghost" onClick={() => setNaming(false)}>Cancel</button>
           </div>
         </div>
       ) : (
-        <button className="btn done wide" onClick={() => { setName(""); setNaming(true); }}>
+        <button className="btn done wide" onClick={() => { setName(""); setDays(1); setNaming(true); }}>
           + New trip plan
         </button>
       )}

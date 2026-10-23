@@ -41,6 +41,9 @@ export default function PlanView() {
     const p = getPlan(u, id);
     if (!p) { nav("/plans", { replace: true }); return; }
     setPlan(p);
+    // Another plan is another trip: day 1, and his place in it comes from storage below.
+    setDayIdx(0);
+    setPopId(null);
   }, [id, nav]);
 
   // Where he is in each day, kept per plan so closing the tab does not lose his place.
