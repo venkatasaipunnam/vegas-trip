@@ -1,0 +1,644 @@
+<title>Sai's Vegas & LA Trip</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: marquee-sign header → free-time strip → zoomable neon map with day chips → day cards → Universal / LA / Arizona playbooks */
+:root{
+  color-scheme: dark;
+  --night:#130f22;          /* desert night sky */
+  --panel:#1d1733;
+  --panel-2:#272043;
+  --line:#3a3160;
+  --sand:#f3e7d3;           /* postcard paper text */
+  --muted:#a89cc8;
+  --pink:#ff4fa3;           /* neon sign */
+  --cyan:#3fe0e8;           /* Pacific / LA */
+  --amber:#ffb547;          /* sunset / Arizona */
+  --go:#5ee39a; --maybe:#ffd166; --skip:#ff6b6b;
+  --hatch:#2e2650;
+  --f-display:"Bungee", "Impact", "Arial Black", sans-serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--night);color:var(--sand);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+a{color:var(--cyan)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0}
+h2{font-family:var(--f-display);font-weight:400;font-size:clamp(20px,4.4vw,28px);letter-spacing:.02em;color:var(--sand)}
+h3{font-size:17px;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* ===== Marquee header ===== */
+header.hero{position:relative;margin-top:16px;padding:26px 22px 22px;border-radius:18px;background:
+  radial-gradient(120% 140% at 0% 0%, rgba(255,79,163,.22), transparent 55%),
+  radial-gradient(120% 140% at 100% 100%, rgba(63,224,232,.18), transparent 55%), var(--panel);
+  overflow:hidden}
+.bulbs{position:absolute;inset:8px;border-radius:12px;pointer-events:none;
+  background-image:radial-gradient(circle, var(--amber) 2.2px, transparent 2.8px);background-size:16px 16px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:5px;
+  animation:chase 1.2s steps(2) infinite;opacity:.85}
+@keyframes chase{50%{background-position:8px 0}}
+.hero-inner{position:relative;display:flex;flex-direction:column;gap:12px;padding:10px 8px}
+.hero h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,7vw,56px);line-height:1.02;
+  color:var(--sand);text-shadow:0 0 6px var(--pink),0 0 18px rgba(255,79,163,.6)}
+.hero h1 span{color:var(--cyan);text-shadow:0 0 6px var(--cyan),0 0 18px rgba(63,224,232,.5)}
+.hero h1 em{font-style:normal;color:var(--amber);text-shadow:0 0 6px var(--amber),0 0 18px rgba(255,181,71,.5)}
+.flicker{animation:flick 6s infinite}
+@keyframes flick{0%,92%,100%{opacity:1}93%{opacity:.35}94%{opacity:1}96%{opacity:.5}97%{opacity:1}}
+.hero p{margin:0;max-width:62ch;color:var(--sand)}
+.stamps{display:flex;flex-wrap:wrap;gap:8px}
+.stamp{font-family:var(--f-mono);font-size:12px;padding:5px 10px;border:1.5px dashed var(--line);border-radius:6px;color:var(--sand);background:rgba(0,0,0,.18)}
+.stamp b{color:var(--amber);font-weight:700}
+
+/* ===== Free time strip ===== */
+.free{display:flex;flex-direction:column;gap:10px}
+.fgrid{display:grid;grid-template-columns:78px 1fr;gap:6px 10px;align-items:center}
+.fday{font-family:var(--f-mono);font-size:12px;color:var(--muted);line-height:1.2}
+.fday b{display:block;color:var(--sand);font-size:13px}
+.fbar{position:relative;height:22px;border-radius:6px;background:rgba(94,227,154,.16);overflow:hidden}
+.fbar .blk{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--hatch) 0 5px,#221c3c 5px 10px)}
+.fbar .act{position:absolute;top:4px;bottom:4px;border-radius:4px;background:var(--pink);box-shadow:0 0 8px var(--pink)}
+.fbar .act.la{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.fbar .act.az{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.fbar .act.trv{background:#8e7cc3;box-shadow:none}
+.faxis{position:relative;height:16px;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.faxis span{position:absolute;transform:translateX(-50%)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+/* ===== Map ===== */
+.mapcard{background:var(--panel);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.mapbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.tabs{display:flex;gap:6px;background:var(--night);padding:4px;border-radius:12px}
+.tab{appearance:none;border:0;background:transparent;color:var(--muted);font:600 13px var(--f-body);padding:8px 12px;border-radius:9px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--panel-2);color:var(--sand);box-shadow:inset 0 0 0 1px var(--line)}
+.zoom{display:flex;gap:6px}
+.zoom button{appearance:none;border:1px solid var(--line);background:var(--night);color:var(--sand);width:34px;height:34px;border-radius:9px;font:700 16px var(--f-mono);cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.chip{appearance:none;flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--sand);font:600 12px var(--f-body);padding:6px 11px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip small{font-family:var(--f-mono);color:var(--muted);font-weight:500;margin-left:4px}
+.chip[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:var(--sand)}
+.chip[aria-pressed="true"] small{color:#4a3f6b}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:12px}
+.mapbox{position:relative;height:clamp(380px,62vh,620px);border-radius:14px;overflow:hidden;background:
+  radial-gradient(80% 70% at 50% 40%, #1f1838, #120e20);touch-action:none;cursor:grab}
+.mapbox:active{cursor:grabbing}
+.mapbox svg{width:100%;height:100%;display:block;user-select:none}
+.maphint{position:absolute;left:10px;bottom:10px;font:500 11px var(--f-mono);color:var(--muted);background:rgba(19,15,34,.8);padding:4px 8px;border-radius:6px;pointer-events:none}
+.pin{cursor:pointer}
+.pin .core{stroke:#130f22;stroke-width:2.5}
+.pin .ring{fill:none;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+.pin text{font-family:var(--f-body);font-weight:700;fill:var(--sand);paint-order:stroke;stroke:#130f22;stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+.pin .num{font-family:var(--f-mono);fill:#130f22;stroke:none;font-weight:700}
+.pin.dim{opacity:.22}
+.pin.sel .core{stroke:var(--sand);stroke-width:3.5}
+.route{fill:none;stroke-width:3;stroke-linecap:round;stroke-dasharray:2 9;animation:march 1s linear infinite}
+@keyframes march{to{stroke-dashoffset:-11}}
+.road{fill:none;stroke:#3b3263;stroke-linecap:round;stroke-linejoin:round}
+.rail{fill:none;stroke-dasharray:6 5;stroke-linecap:round}
+.geo-label{font-family:var(--f-display);fill:#4a3f74;letter-spacing:.12em}
+.small-label{font-family:var(--f-mono);fill:var(--muted)}
+.detail{background:var(--night);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;max-height:clamp(380px,62vh,620px);overflow:auto}
+.detail .cat{display:inline-flex;align-self:flex-start;font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;color:#130f22}
+.detail h3{font-size:20px}
+.detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:14px}
+.detail dt{font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-top:3px}
+.detail dd{margin:0}
+.detail ul{margin:0;padding-left:18px}
+.btn{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;text-decoration:none;font:600 13px var(--f-body);color:#130f22;background:var(--cyan);padding:8px 12px;border-radius:9px}
+
+/* ===== Day cards ===== */
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.day{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--pink);min-width:0}
+.day.la{border-top-color:var(--cyan)} .day.az{border-top-color:var(--amber)}
+.dayhead{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dayhead .mono{color:var(--muted);font-size:12px}
+.window{font:600 12px var(--f-mono);color:var(--go);background:rgba(94,227,154,.1);padding:4px 8px;border-radius:6px;align-self:flex-start}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.steps li{display:grid;grid-template-columns:54px 1fr;gap:8px;font-size:14px}
+.steps .t{font-family:var(--f-mono);font-size:12.5px;color:var(--amber);padding-top:1px}
+.steps .how{display:block;color:var(--muted);font-size:12.5px}
+.tag{font:600 10.5px var(--f-mono);padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:1px}
+.tag.cab{background:rgba(255,181,71,.18);color:var(--amber)}
+.tag.book{background:rgba(255,79,163,.18);color:var(--pink)}
+.showmap{appearance:none;border:1px solid var(--line);background:transparent;color:var(--sand);font:600 12px var(--f-body);padding:6px 10px;border-radius:8px;cursor:pointer;align-self:flex-start}
+
+/* ===== Playbooks ===== */
+.section{display:flex;flex-direction:column;gap:14px}
+.lede{margin:0;max-width:68ch;color:var(--sand)}
+.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px}
+.box{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rides{display:flex;flex-direction:column;gap:8px}
+.ride{display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:start;padding:10px;border-radius:10px;background:var(--night)}
+.verdict{font:700 11px var(--f-mono);text-align:center;padding:4px 0;border-radius:6px;color:#130f22}
+.v-go{background:var(--go)} .v-maybe{background:var(--maybe)} .v-skip{background:var(--skip)}
+.ride b{display:block}
+.ride span{color:var(--muted);font-size:13px}
+.timeline{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px dashed var(--line);display:flex;flex-direction:column;gap:12px}
+.timeline li{position:relative;font-size:14px}
+.timeline li::before{content:"";position:absolute;left:-21px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.timeline .t{font:600 12.5px var(--f-mono);color:var(--amber);display:block}
+.cards3{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.mini{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mini h3{font-size:15px}
+.mini p{margin:0;font-size:13.5px;color:var(--sand)}
+.mini .mono{font-size:11.5px;color:var(--muted)}
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.check li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:14px}
+.check li::before{content:"";width:16px;height:16px;border:2px solid var(--amber);border-radius:4px;margin-top:3px}
+.note{font-size:13px;color:var(--muted);margin:0}
+.verdictbox{border-left:4px solid var(--amber);padding:10px 14px;background:rgba(255,181,71,.08);border-radius:0 10px 10px 0;font-size:14px}
+footer{font-size:12px;color:var(--muted)}
+
+@media (max-width:860px){
+  .mapgrid{grid-template-columns:1fr}
+  .detail{max-height:none}
+  .two{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important}
+}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="bulbs" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <div class="eyebrow">Oct 24 – Oct 31, 2026 · no car · mostly transit</div>
+    <h1><span class="flicker">Neon</span>, <span>Pacific</span><br>&amp; the <em>Canyon</em></h1>
+    <p>Every stop below fits inside your free hours. Tap a pin for what to see, how to get there and when to go. Pick a day chip to see that day's route.</p>
+    <div class="stamps">
+      <span class="stamp"><b>3</b> hotels</span>
+      <span class="stamp"><b>1</b> LA day</span>
+      <span class="stamp"><b>1</b> Arizona day</span>
+      <span class="stamp"><b>~4</b> cab rides total</span>
+    </div>
+  </div>
+</header>
+
+<section class="free" aria-labelledby="free-h">
+  <div class="eyebrow" id="free-h">Your free time each day · midnight to midnight</div>
+  <div class="fgrid" id="fgrid"></div>
+  <div class="legend">
+    <span><i style="background:rgba(94,227,154,.35)"></i>Free</span>
+    <span><i style="background:repeating-linear-gradient(135deg,var(--hatch) 0 3px,#221c3c 3px 6px)"></i>Not available</span>
+    <span><i style="background:var(--pink)"></i>Vegas plan</span>
+    <span><i style="background:var(--cyan)"></i>LA plan</span>
+    <span><i style="background:var(--amber)"></i>Arizona</span>
+    <span><i style="background:#8e7cc3"></i>Travel / bus</span>
+  </div>
+</section>
+
+<section class="mapcard" aria-label="Trip map">
+  <div class="mapbar">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="trip" aria-selected="false" id="tab-trip">Whole trip</button>
+      <button class="tab" role="tab" data-view="lv" aria-selected="true" id="tab-lv">Las Vegas</button>
+      <button class="tab" role="tab" data-view="la" aria-selected="false" id="tab-la">Los Angeles</button>
+    </div>
+    <div class="zoom">
+      <button id="zin" aria-label="Zoom in">+</button>
+      <button id="zout" aria-label="Zoom out">−</button>
+      <button id="zreset" aria-label="Reset map" style="width:auto;padding:0 10px;font-size:12px">Reset</button>
+    </div>
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="Filter by day"></div>
+  <div class="mapgrid">
+    <div class="mapbox" id="mapbox">
+      <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="Map of planned places"></svg>
+      <div class="maphint">Drag to move · pinch or scroll to zoom</div>
+    </div>
+    <aside class="detail" id="detail" aria-live="polite"></aside>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="days-h">
+  <h2 id="days-h">Day by day</h2>
+  <div class="days" id="days"></div>
+</section>
+
+<section class="section" aria-labelledby="ush-h" id="universal">
+  <div class="eyebrow">Sunday Oct 25 · open 8 AM – 6 PM</div>
+  <h2 id="ush-h">Universal Studios, no scary rides</h2>
+  <p class="lede">Universal Hollywood is built around a studio tour, shows and gentle dark rides, so you can have a full morning without a single coaster. Plan to be inside by about 9:20 and leave by 3:00 so Hollywood and the Santa Monica sunset still fit. The park closes at 6 PM for Halloween Horror Nights, a separate scare event. You will be gone long before it starts.</p>
+  <div class="two">
+    <div class="box">
+      <h3>Your route through the park</h3>
+      <ol class="timeline">
+        <li><span class="t">9:20</span><b>Studio Tour first.</b> The park's signature: a ~60-minute tram ride through real backlots and sets. A few staged moments (a small quake, a flash flood, King Kong in 3D, a Jaws scare) but nothing that drops or spins. Lines grow fast, so do it first.</li>
+        <li><span class="t">10:30</span><b>The Secret Life of Pets: Off the Leash.</b> A gentle, cute dark ride.</li>
+        <li><span class="t">11:00</span><b>Wizarding World of Harry Potter.</b> Walk Hogsmeade, see the wand-choosing show at Ollivanders, photograph Hogwarts castle, drink a Butterbeer.</li>
+        <li><span class="t">12:15</span><b>Lunch</b> at Three Broomsticks (Harry Potter) or Krusty Burger in Springfield. Catch the WaterWorld stunt show if a showtime fits (check the app; front rows get soaked).</li>
+        <li><span class="t">1:15</span><b>Starway escalators to the Lower Lot.</b> About 10 minutes down, with views over the valley.</li>
+        <li><span class="t">1:30</span><b>Super Nintendo World.</b> Mario Kart: Bowser's Challenge is an augmented-reality kart ride with turns but no drops. Buy or borrow a Power-Up Band to play the wall games and collect coins.</li>
+        <li><span class="t">2:30</span><b>Back up for Kung Fu Panda Adventure</b> in the DreamWorks Theatre (a film with gently moving seats), then walk out through Springfield.</li>
+        <li><span class="t">3:00</span><b>Exit</b> and walk down to Universal City/Studio City station.</li>
+      </ol>
+      <p class="note">Use the official Universal Studios Hollywood app for live wait times and show times. If your ticket includes Express or Early Access, you can add more and still leave on time.</p>
+    </div>
+    <div class="box">
+      <h3>Ride guide for you</h3>
+      <div class="rides" id="rides"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="la-h">
+  <div class="eyebrow">Sunday Oct 25 · after Universal</div>
+  <h2 id="la-h">Hollywood Sign &amp; Santa Monica sunset</h2>
+  <div class="verdictbox"><b>Is the Santa Monica sunset worth it? Yes.</b> The sun sets straight over the Pacific at about 6:05 PM that evening, and the pier lights and the Ferris wheel switch on right as the sky turns orange. It is the best way to end a busy park day, and it is free. Get there by 5:30 to walk the pier first.</div>
+  <div class="cards3" id="lacards"></div>
+</section>
+
+<section class="section" aria-labelledby="az-h">
+  <div class="eyebrow">Saturday Oct 31 · your last day</div>
+  <h2 id="az-h">Arizona: Grand Canyon West + Hoover Dam</h2>
+  <p class="lede">A guided bus tour solves the no-car problem: hotel pickup around 6:30 AM, about 3 to 3.5 hours at the canyon's West Rim, a Hoover Dam photo stop, and back in Vegas around 5 to 6 PM. That leaves a calm evening before your 11:59 PM flight.</p>
+  <div class="cards3" id="azcards"></div>
+</section>
+
+<section class="section" aria-labelledby="go-h">
+  <h2 id="go-h">Getting around &amp; bookings</h2>
+  <div class="two">
+    <div class="box">
+      <h3>Transit, cheapest first</h3>
+      <div class="cards3" style="grid-template-columns:1fr">
+        <div class="mini"><h3>The Deuce bus · Las Vegas</h3><p>Double-decker that runs the whole Strip to Fremont Street, 24 hours a day. $8 for a 24-hour pass, $20 for 3 days. Buy in the rideRTC app before boarding.</p></div>
+        <div class="mini"><h3>Las Vegas Monorail</h3><p>Runs behind the east side of the Strip, Sahara to MGM Grand, with a stop at Westgate. 24-hour pass $15 ($13.45 online). Monday it runs until midnight, Tuesday to Thursday until 2 AM, Friday to Sunday until 3 AM.</p></div>
+        <div class="mini"><h3>LA Metro B &amp; E Lines</h3><p>B Line: Union Station → Hollywood/Highland → Universal City. E Line: 7th St/Metro Center → Downtown Santa Monica. Tap a TAP card or your phone wallet at the gate.</p></div>
+        <div class="mini"><h3>Planned cab rides (4)</h3><p>Airport → Circus Circus · Hollywood → Santa Monica · Seven Magic Mountains round trip with the driver waiting · Westgate → airport.</p></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>Book this week</h3>
+      <ul class="check">
+        <li><span><b>Grand Canyon West + Hoover Dam tour</b> for Sat Oct 31, with the Skywalk option. Confirm the pickup spot by Thursday, since operators ask for 48 hours' notice.</span></li>
+        <li><span><b>The Wizard of Oz at Sphere</b> for Fri Oct 30, a 3–4 PM showing. 75 minutes, no late entry, tickets from about $100.</span></li>
+        <li><span><b>High Roller night ticket</b> for Tue Oct 27, 9:30 PM.</span></li>
+        <li><span><b>Universal app</b> downloaded and your ticket added.</span></li>
+        <li><span><b>rideRTC</b> (Deuce) and <b>Las Vegas Monorail</b> passes on your phone.</span></li>
+        <li><span><b>Bus stops:</b> check exactly where your Sunday 2:30 AM bus leaves from and where it drops you in LA. This plan assumes Downtown LA near Union Station.</span></li>
+      </ul>
+      <p class="note">Sphere's October concerts (Metallica, Oct 24, 29 and 31) are sold out, so expect big crowds around the Venetian on those nights.</p>
+    </div>
+  </div>
+</section>
+
+<footer>Hours and prices checked Oct 22, 2026 from public listings; confirm times in each venue's app the day before. Map shapes are simplified.</footer>
+</div>
+
+<script>
+/* ---------- Data ---------- */
+const COL={lv:"var(--pink)",la:"var(--cyan)",az:"var(--amber)",stay:"#c9b6ff",travel:"#8e7cc3"};
+const CATS={stay:["Hotel","#c9b6ff"],see:["Must see","#ff4fa3"],show:["Show","#ff4fa3"],free:["Free sight","#5ee39a"],park:["Theme park","#3fe0e8"],beach:["Sunset","#ffb547"],nature:["Day trip","#ffb547"],travel:["Transport","#8e7cc3"],extra:["If time","#a89cc8"]};
+const gm=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+
+const P={
+ // Las Vegas
+ airport:{n:"Harry Reid Airport (LAS)",v:"lv",lat:36.084,lng:-115.1537,cat:"travel",lp:"r",
+   see:["Arrive Sat Oct 24, 10:00 AM","Depart Sat Oct 31, 11:59 PM"],how:"Uber/Lyft to the Strip in about 15–20 minutes.",tip:"On the last night, be at the airport by about 9:30 PM.",q:"Harry Reid International Airport"},
+ circus:{n:"Circus Circus",v:"lv",lat:36.1376,lng:-115.1650,cat:"stay",lp:"l",
+   see:["Hotel 1: Sat Oct 24 (3 PM) → Mon Oct 26 (10 AM)","Bell desk holds bags before check-in"],how:"Deuce stop out front. Fontainebleau is a 10-minute walk across the street.",tip:"Drop bags on arrival, then rest here 3–6 PM before the overnight bus.",q:"Circus Circus Las Vegas"},
+ fontainebleau:{n:"Fontainebleau",v:"lv",lat:36.1371,lng:-115.1578,cat:"stay",lp:"r",
+   see:["Hotel 2: Mon Oct 26 (3 PM) → Thu Oct 29 (10 AM)","Conference venue"],how:"Sahara monorail station is about a 10-minute walk.",tip:"Weeknights here start at 9 PM, so the plans nearby are short and easy.",q:"Fontainebleau Las Vegas"},
+ westgate:{n:"Westgate",v:"lv",lat:36.1361,lng:-115.1522,cat:"stay",lp:"r",dy:22,
+   see:["Hotel 3: Thu Oct 29 (3 PM) → Sat Oct 31 (before 10 AM)","Has its own monorail station"],how:"Monorail from the hotel; Deuce on Las Vegas Blvd (10 min walk).",tip:"On Saturday, check out at 6 AM and leave bags with the bell desk for the day.",q:"Westgate Las Vegas Resort"},
+ sphere:{n:"Sphere",v:"lv",lat:36.1207,lng:-115.1622,cat:"show",lp:"r",
+   see:["The Wizard of Oz at Sphere: 75 min, huge 360° screen, wind and scent effects","Exosphere: the outside of the ball lights up with animations every evening","Halloween activities in the atrium for Oz shows Oct 30 – Nov 1"],
+   how:"Monorail to Harrah's/LINQ, then a 10-minute walk; or Deuce to the Venetian.",tip:"Book a Friday 3–4 PM showing and arrive 30 minutes early. No late entry.",q:"Sphere Las Vegas"},
+ highroller:{n:"High Roller & LINQ",v:"lv",lat:36.1176,lng:-115.1682,cat:"see",lp:"l",
+   see:["550-ft observation wheel; one slow 30-minute rotation","Glass cabins, views of the whole lit-up Strip","LINQ Promenade: bars, shops, street food"],
+   how:"Monorail to Harrah's/The LINQ station (about 10 min from Sahara station).",tip:"Tuesday it runs until 11:30 PM, so board by about 10:30. Smooth and slow, not a thrill ride.",q:"High Roller Las Vegas"},
+ bellagio:{n:"Bellagio Fountains",v:"lv",lat:36.1126,lng:-115.1767,cat:"free",lp:"l",
+   see:["Fountain shows set to music, every 15 minutes after dark","Conservatory: free seasonal fall garden display inside"],
+   how:"Deuce to Bellagio/Caesars stop.",tip:"Watch from the bridge in front of Paris, or from the Eiffel Tower deck.",q:"Fountains of Bellagio"},
+ paris:{n:"Paris · Eiffel Tower",v:"lv",lat:36.1125,lng:-115.1707,cat:"extra",lp:"r",
+   see:["Half-size Eiffel Tower with a viewing deck","Best view down onto the Bellagio fountains"],how:"Across the street from Bellagio.",tip:"Optional add-on on Saturday night.",q:"Eiffel Tower Viewing Deck Las Vegas"},
+ caesars:{n:"Caesars Forum Shops",v:"lv",lat:36.1178,lng:-115.1752,cat:"free",lp:"l",
+   see:["Roman-style indoor street with a painted sky","Fall of Atlantis fountain show (free)"],how:"Deuce to Caesars Palace.",tip:"Walk from here south to Bellagio in 10 minutes.",q:"Forum Shops at Caesars"},
+ venetian:{n:"Venetian & Palazzo",v:"lv",lat:36.1212,lng:-115.1697,cat:"free",lp:"l",
+   see:["Indoor Grand Canal with gondolas and singing gondoliers","St. Mark's Square street performers","Right next to Sphere"],how:"Deuce to the Venetian stop.",tip:"Good midday stop on Saturday: indoors and cool while you wait for check-in.",q:"The Venetian Las Vegas Grand Canal Shoppes"},
+ wynn:{n:"Wynn & Encore",v:"lv",lat:36.1265,lng:-115.1657,cat:"free",lp:"r",
+   see:["Flower displays and the carousel sculptures in the lobby","Calm, beautiful walk-through"],how:"About 8 minutes' walk from Fontainebleau.",tip:"An easy Monday-night stroll if you have energy after the bus.",q:"Wynn Las Vegas"},
+ south:{n:"South Strip",v:"lv",lat:36.1023,lng:-115.1746,cat:"free",lp:"r",
+   see:["New York-New York skyline & Brooklyn Bridge","Excalibur castle","Luxor pyramid and its sky beam"],how:"Monorail to MGM Grand station, then walk south.",tip:"Thursday evening: fun free photos, all walkable.",q:"New York-New York Las Vegas"},
+ welcome:{n:"Welcome to Fabulous Las Vegas sign",v:"lv",lat:36.0820,lng:-115.1728,cat:"free",lp:"r",
+   see:["The classic 1959 sign","Free; short photo line"],how:"Stop on the way to Seven Magic Mountains (same cab ride).",tip:"Midday lines are usually shorter than at sunset.",q:"Welcome to Fabulous Las Vegas Sign"},
+ fremont:{n:"Fremont Street Experience",v:"lv",lat:36.1707,lng:-115.1440,cat:"see",lp:"l",
+   see:["LED canopy light shows overhead each hour in the evening","Old Vegas casinos, street performers, live music"],how:"Deuce north from the Strip, about 20 minutes.",tip:"Wednesday 9 PM onward is perfect: it stays busy until late.",q:"Fremont Street Experience"},
+ strat:{n:"STRAT SkyPod",v:"lv",lat:36.1475,lng:-115.1566,cat:"extra",lp:"r",
+   see:["Indoor/outdoor observation decks 800+ ft up"],how:"10-minute walk from Fontainebleau or Westgate.",tip:"If time. Skip the thrill rides on the top; the decks themselves are calm.",q:"STRAT SkyPod Las Vegas"},
+ // Trip view
+ lvcity:{n:"Las Vegas",v:"trip",lat:36.13,lng:-115.16,cat:"see",lp:"l",goto:"lv",see:["Base for the whole trip"],how:"",tip:"Tap to open the Las Vegas map.",q:"Las Vegas Strip"},
+ lacity:{n:"Los Angeles",v:"trip",lat:34.06,lng:-118.3,cat:"park",lp:"r",goto:"la",see:["Sunday Oct 25 day trip by bus"],how:"",tip:"Tap to open the LA map.",q:"Los Angeles"},
+ sevenmm:{n:"Seven Magic Mountains",v:"trip",lat:35.8385,lng:-115.2705,cat:"free",lp:"l",
+   see:["Seven towers of stacked neon-painted boulders, each over 30 ft tall","Art by Ugo Rondinone in the open desert","Free, open any time"],
+   how:"No transit. Uber about 30 minutes each way; ask the driver to wait or book them for the return.",tip:"No restrooms and no phone pickups out there, so never let the cab leave without a return plan. Bring water.",q:"Seven Magic Mountains"},
+ hoover:{n:"Hoover Dam",v:"trip",lat:36.016,lng:-114.7377,cat:"nature",lp:"l",
+   see:["Walk the Memorial Bridge pedestrian path, high above the dam","Nevada–Arizona state line"],how:"Photo stop on your Grand Canyon tour.",tip:"Only small bags pass the dam checkpoint.",q:"Hoover Dam"},
+ gcwest:{n:"Grand Canyon West",v:"trip",lat:36.0119,lng:-113.8108,cat:"nature",lp:"r",
+   see:["Skywalk: glass bridge 4,000 ft above the canyon floor","Eagle Point: a rock that looks like an eagle","Guano Point: the best wide views on the West Rim"],
+   how:"Bus tour from Las Vegas, about 2.5 hours each way.",tip:"Phones aren't allowed on the Skywalk (free lockers), so take photos at Guano Point.",q:"Grand Canyon West Skywalk"},
+ // LA
+ dtla:{n:"Downtown LA bus stop",v:"la",lat:34.0562,lng:-118.2365,cat:"travel",lp:"r",
+   see:["Arrive 8:15 AM Sunday","Depart 12:30 AM Monday"],how:"Assumed near Union Station; check your ticket.",tip:"Grab breakfast at Union Station or nearby Grand Central Market.",q:"Union Station Los Angeles"},
+ universal:{n:"Universal Studios Hollywood",v:"la",lat:34.1381,lng:-118.3534,cat:"park",lp:"l",
+   see:["Studio Tour of real movie backlots","Super Nintendo World & Wizarding World","Open 8 AM – 6 PM on Oct 25"],how:"Metro B Line to Universal City/Studio City (~25 min), then a short walk or free shuttle up the hill.",tip:"See the full no-coaster plan below.",q:"Universal Studios Hollywood"},
+ hollywood:{n:"Hollywood & Highland",v:"la",lat:34.1017,lng:-118.3387,cat:"see",lp:"r",
+   see:["Hollywood Sign view from the upper terraces of Ovation Hollywood","TCL Chinese Theatre handprints","Walk of Fame stars"],how:"Metro B Line, one stop from Universal City (~5 min).",tip:"Go to the top-level walkway for the clearest sign photo.",q:"Ovation Hollywood"},
+ sign:{n:"Hollywood Sign",v:"la",lat:34.1341,lng:-118.3215,cat:"free",lp:"r",
+   see:["You can't walk up to the letters; view it from Hollywood & Highland or Griffith"],how:"Seen from Hollywood & Highland on your route.",tip:"Clearest in late-afternoon light.",q:"Hollywood Sign"},
+ griffith:{n:"Griffith Observatory",v:"la",lat:34.1184,lng:-118.3004,cat:"extra",lp:"r",
+   see:["The closest postcard view of the Hollywood Sign","Free entry, city views"],how:"B Line to Vermont/Sunset, then the DASH Observatory bus.",tip:"Skip on this trip unless Universal finishes early; it costs about 90 minutes.",q:"Griffith Observatory"},
+ pier:{n:"Santa Monica Pier",v:"la",lat:34.0094,lng:-118.4973,cat:"beach",lp:"l",
+   see:["Sunset over the Pacific about 6:05 PM","Pacific Park Ferris wheel (slow and gentle)","End of Route 66 sign, beach walk"],how:"Cab from Hollywood (~50 min). Back by Metro E Line.",tip:"Arrive by 5:30 PM, walk the pier, then claim a spot on the sand.",q:"Santa Monica Pier"},
+ promenade:{n:"Third Street Promenade",v:"la",lat:34.0160,lng:-118.4970,cat:"free",lp:"r",dy:-14,
+   see:["Walkable street of restaurants and shops"],how:"5-minute walk from the pier.",tip:"Dinner here, then Downtown Santa Monica station is right next to it.",q:"Third Street Promenade"},
+ venice:{n:"Venice Beach",v:"la",lat:33.9850,lng:-118.4695,cat:"extra",lp:"l",
+   see:["Boardwalk, skate park, Muscle Beach"],how:"2 miles south of the pier along the beach path.",tip:"Only if you reach Santa Monica early.",q:"Venice Beach Boardwalk"}
+};
+
+const DAYS=[
+ {id:"d24",short:"Sat 24",title:"Arrival + center Strip",city:"lv",win:"Free all day",
+  bars:[[10,11,"trv"],[11.75,14.75,"lv"],[18.5,22.5,"lv"]],block:[],
+  steps:[["10:00","airport","Land at LAS. Cab to Circus Circus and drop your bags.","~20 min",1],
+   ["11:45","venetian","Deuce to the Venetian: Grand Canal, gondolas, St. Mark's Square. See Sphere from outside.","Deuce · $8 day pass"],
+   ["1:30","wynn","Walk back north via Wynn's flower lobby.","15 min walk"],
+   ["3:00","circus","Check in. Sleep 3:30–6 PM; tonight is a short night.",""],
+   ["6:30","caesars","Deuce south: Forum Shops at Caesars.","Deuce"],
+   ["7:30","bellagio","Bellagio Conservatory and fountain shows every 15 minutes.","walk"],
+   ["8:30","paris","Optional: Eiffel Tower deck over the fountains.","across the street"],
+   ["10:30","circus","Back to the hotel to rest. Leave for the bus stop around 1:45 AM.","Deuce runs all night"]]},
+ {id:"d25",short:"Sun 25",title:"LA: Universal, Hollywood, sunset",city:"la",win:"Free all day",
+  bars:[[2.5,8.25,"trv"],[8.25,24,"la"]],block:[],
+  steps:[["2:30","","Bus leaves Las Vegas (sleep on board).",""],
+   ["8:15","dtla","Arrive Downtown LA. Quick breakfast.",""],
+   ["8:45","universal","Metro B Line to Universal City. Inside the park by ~9:20.","Metro"],
+   ["9:20","universal","Universal no-coaster plan (see below) until 3:00 PM.",""],
+   ["3:15","hollywood","B Line one stop to Hollywood/Highland: Sign view, Walk of Fame, Chinese Theatre.","Metro · 5 min"],
+   ["4:40","pier","Cab to Santa Monica Pier.","~50 min",1],
+   ["6:05","pier","Sunset over the Pacific. Pier lights come on.",""],
+   ["7:00","promenade","Dinner on Third Street Promenade.",""],
+   ["9:00","dtla","Metro E Line from Downtown Santa Monica back toward downtown. Be at the bus stop by 11:45 PM.","Metro · ~55 min"]]},
+ {id:"d26",short:"Mon 26",title:"Hotel switch, early night",city:"lv",win:"Free after 9 PM",
+  bars:[[0,5.83,"trv"],[21,22,"lv"]],block:[[6,21]],
+  steps:[["5:50","circus","Bus arrives. Back to Circus Circus to freshen up before work.",""],
+   ["10:00","fontainebleau","Check out; move bags across to Fontainebleau's bell desk (10 min walk). Check-in from 3 PM.",""],
+   ["9:00 PM","wynn","Optional easy stroll through Wynn & Encore. Otherwise sleep; you were on a bus last night.","8 min walk"]]},
+ {id:"d27",short:"Tue 27",title:"High Roller night ride",city:"lv",win:"Free after 9 PM",
+  bars:[[21,23.75,"lv"]],block:[[6,21]],
+  steps:[["9:00 PM","highroller","Monorail from Sahara station to Harrah's/The LINQ.","~10 min"],
+   ["9:30","highroller","High Roller night ride (30 min). Book ahead.","",0,1],
+   ["10:15","highroller","Walk the LINQ Promenade, grab a late bite.",""],
+   ["11:30","fontainebleau","Monorail back (runs until 2 AM).",""]]},
+ {id:"d28",short:"Wed 28",title:"Old Vegas on Fremont",city:"lv",win:"Free after 9 PM",
+  bars:[[21,24,"lv"]],block:[[6,21]],
+  steps:[["9:00 PM","fremont","Deuce north to Fremont Street Experience.","~20 min"],
+   ["9:30","fremont","Canopy light shows, old casinos, live music on the street.",""],
+   ["11:30","fontainebleau","Deuce back; it runs 24 hours.",""]]},
+ {id:"d29",short:"Thu 29",title:"South Strip walk",city:"lv",win:"Free after 6 PM",
+  bars:[[18.5,22.5,"lv"]],block:[[6,18]],
+  steps:[["10:00","westgate","Check out of Fontainebleau. Bags to Westgate (short cab or bell desk help). Check-in from 3 PM.",""],
+   ["6:30 PM","south","Monorail from Westgate to MGM Grand. Walk New York-New York, Excalibur, Luxor's beam.","Monorail"],
+   ["8:30","sphere","Optional: see the Exosphere glowing on Metallica night (crowds).","Monorail to Harrah's"],
+   ["10:00","westgate","Monorail back. Confirm your Saturday tour pickup tonight.",""]]},
+ {id:"d30",short:"Fri 30",title:"Magic Mountains + Sphere",city:"lv",win:"Free after 11 AM",
+  bars:[[11.25,14,"lv"],[14.5,17,"lv"],[18.5,21.5,"lv"]],block:[[6,11]],
+  steps:[["11:15","welcome","Cab from Westgate, driver waits: Welcome sign photo stop.","",1],
+   ["12:00","sevenmm","Seven Magic Mountains, about 45 minutes. Bring water.","~$100–150 round trip with wait",1],
+   ["2:30","sphere","The Wizard of Oz at Sphere, 3–4 PM showing. Halloween activities in the atrium.","Monorail",0,1],
+   ["6:30","sphere","Watch the Exosphere's evening show, dinner nearby.",""],
+   ["9:30","westgate","Early night: tour pickup is about 6:30 AM.",""]]},
+ {id:"d31",short:"Sat 31",title:"Grand Canyon West, then fly",city:"az",win:"Free all day · flight 11:59 PM",
+  bars:[[6.5,17.5,"az"],[18.5,21,"lv"],[21.25,24,"trv"]],block:[],
+  steps:[["6:00","westgate","Check out; bags to Westgate bell desk. Small backpack only on the tour.",""],
+   ["6:30","gcwest","Tour pickup (spot set by your operator).","",0,1],
+   ["10:30","gcwest","Eagle Point, Skywalk, Guano Point.",""],
+   ["~3:30","hoover","Hoover Dam bridge photo stop on the way back.",""],
+   ["5:30","westgate","Back in Vegas. Collect bags.",""],
+   ["7:00","bellagio","Halloween night on the Strip: costumes everywhere. Last fountain show.",""],
+   ["9:15","airport","Cab to the airport for the 11:59 PM flight.","~20 min",1]]}
+];
+
+const RIDES=[
+ ["go","Studio Tour","Tram through real backlots; small staged surprises, no drops."],
+ ["go","Secret Life of Pets: Off the Leash","Slow, cute dark ride."],
+ ["go","Mario Kart: Bowser's Challenge","AR kart ride with turns; no drops or launches."],
+ ["go","Kung Fu Panda Adventure","Theater film with gently moving seats."],
+ ["go","WaterWorld & Ollivanders","Shows, no riding at all."],
+ ["maybe","Despicable Me Minion Mayhem","Motion simulator. Ask staff for the stationary seats."],
+ ["maybe","Flight of the Hippogriff","A small family coaster, about one minute. Your first test, if you want one."],
+ ["maybe","Jurassic World – The Ride","Calm boat ride, then one big drop at the end. You will get wet."],
+ ["skip","Fast & Furious: Hollywood Drift","New coaster: 72 mph, spinning cars, up to 3.6 G."],
+ ["skip","Revenge of the Mummy","Launch coaster in the dark."],
+ ["skip","Forbidden Journey","Intense robotic-arm motion; Hogsmeade is still worth walking."],
+ ["skip","Transformers & The Simpsons Ride","Strong 3D motion simulators."]
+];
+
+const LACARDS=[
+ ["Hollywood Sign photo","From Hollywood & Highland's top-level walkway. One Metro stop from Universal.","3:15–4:30 PM"],
+ ["Walk of Fame & Chinese Theatre","Stars underfoot, movie-star handprints in the forecourt, Dolby Theatre next door.","Same stop"],
+ ["Santa Monica Pier","Ferris wheel, arcade, Route 66 end sign, then sunset from the sand.","5:30–7 PM"],
+ ["Third Street Promenade","Easy dinner street next to the Metro station.","7–8:45 PM"],
+ ["Griffith Observatory · if time","Best Hollywood Sign view, but costs ~90 minutes by DASH bus.","Optional"],
+ ["Venice Beach · if time","Boardwalk and skate park, 2 miles down the beach path.","Optional"]
+];
+const AZCARDS=[
+ ["Book the right tour","Pick “Grand Canyon West + Hoover Dam” with the Skywalk option, from about $200 depending on add-ons.","Book now"],
+ ["Pickup","Many tours collect at Sahara or Circus Circus around 6:30–6:50 AM, a short walk from Westgate. Confirm 48 hours ahead.","By Thu"],
+ ["At the canyon","Shuttle loop to Eagle Point (Skywalk) and Guano Point. Lunch is often included.","~3.5 hrs"],
+ ["Before you go","Water, sunscreen, a light jacket (rim can be cool in late October), small backpack only.","Pack Fri"]
+];
+
+/* ---------- Free-time bars ---------- */
+(function(){
+ const g=document.getElementById("fgrid");
+ const pct=h=>(h/24*100)+"%";
+ DAYS.forEach(d=>{
+  const lab=document.createElement("div");lab.className="fday";
+  lab.innerHTML=`<b>${d.short}</b>${d.city==="la"?"LA":d.city==="az"?"AZ":"LV"}`;
+  const bar=document.createElement("div");bar.className="fbar";
+  d.block.forEach(([a,b])=>{const e=document.createElement("div");e.className="blk";e.style.left=pct(a);e.style.width=pct(b-a);bar.appendChild(e)});
+  d.bars.forEach(([a,b,c])=>{const e=document.createElement("div");e.className="act "+c;e.style.left=pct(a);e.style.width=pct(b-a);bar.appendChild(e)});
+  bar.title=d.win;
+  g.append(lab,bar);
+ });
+ const sp=document.createElement("div");const ax=document.createElement("div");ax.className="faxis";
+ [[0,"12a"],[6,"6a"],[12,"12p"],[18,"6p"],[24,"12a"]].forEach(([h,t])=>{const s=document.createElement("span");s.textContent=t;s.style.left=pct(h);if(h===0)s.style.transform="none";if(h===24)s.style.transform="translateX(-100%)";ax.appendChild(s)});
+ g.append(sp,ax);
+})();
+
+/* ---------- Map views ---------- */
+const VIEWS={
+ lv:{b:[36.072,36.178,-115.195,-115.135]},
+ la:{b:[33.965,34.165,-118.53,-118.205]},
+ trip:{b:[33.55,37.0,-118.9,-113.3]}
+};
+for(const k in VIEWS){const v=VIEWS[k];const[la0,la1,ln0,ln1]=v.b;const mid=(la0+la1)/2;const w=(ln1-ln0)*Math.cos(mid*Math.PI/180),h=la1-la0;const K=1000/Math.max(w,h);v.W=w*K;v.H=h*K;v.K=K;v.c=Math.cos(mid*Math.PI/180);v.fs=Math.max(v.W,v.H)/60}
+function proj(v,lat,lng){const[la0,la1,ln0]=v.b;return[(lng-ln0)*v.c*v.K,(la1-lat)*v.K]}
+
+const GEO={
+ lv:{
+  roads:[{pts:[[36.0820,-115.1728],[36.1024,-115.1720],[36.1162,-115.1740],[36.1260,-115.1690],[36.1446,-115.1563],[36.1600,-115.1490],[36.1707,-115.1440]],w:7,label:"LAS VEGAS BLVD",at:2},
+         {pts:[[36.072,-115.185],[36.12,-115.188],[36.16,-115.165],[36.178,-115.155]],w:5,label:"I-15",at:1}],
+  rails:[{pts:[[36.1018,-115.1660],[36.1137,-115.1675],[36.1185,-115.1680],[36.1314,-115.1535],[36.1365,-115.1505],[36.1435,-115.1560]],col:"#3fe0e8",label:"MONORAIL"}],
+  labels:[]
+ },
+ la:{
+  roads:[{pts:[[34.165,-118.52],[34.04,-118.548],[34.03,-118.52],[34.012,-118.500],[33.99,-118.476],[33.965,-118.462]],w:3,coast:true}],
+  rails:[{pts:[[34.0562,-118.2365],[34.0486,-118.2588],[34.0762,-118.2918],[34.0983,-118.2915],[34.1017,-118.3387],[34.1395,-118.3627]],col:"#ff4fa3",label:"METRO B"},
+         {pts:[[34.0486,-118.2588],[34.0254,-118.2780],[34.0300,-118.3350],[34.0277,-118.3887],[34.0310,-118.4300],[34.0141,-118.4911]],col:"#ffb547",label:"METRO E"}],
+  labels:[["PACIFIC OCEAN",34.0,-118.515,-70],["HOLLYWOOD HILLS",34.128,-118.36,0]]
+ },
+ trip:{
+  roads:[{pts:[[34.1,-118.9],[34.04,-118.56],[33.98,-118.46],[33.75,-118.40],[33.55,-117.95]],w:3,coast:true},
+         {pts:[[37.0,-117.31],[35.0018,-114.633]],w:1.5,border:true},
+         {pts:[[35.0018,-114.633],[34.3,-114.15],[33.55,-114.52]],w:1.5,border:true},
+         {pts:[[35.0018,-114.633],[35.5,-114.67],[36.0,-114.74],[36.05,-114.4],[36.15,-114.05],[37.0,-114.05]],w:1.5,border:true}],
+  rails:[],
+  labels:[["NEVADA",36.6,-115.9,0],["CALIFORNIA",34.9,-117.6,0],["ARIZONA",35.1,-113.9,0],["PACIFIC",33.75,-118.75,0]]
+ }
+};
+const ROUTES={
+ bus:{v:"trip",days:["d25"],col:"#8e7cc3",pts:[[36.12,-115.17],[35.6,-115.4],[35.27,-116.07],[34.9,-117.02],[34.5,-117.4],[34.1,-117.6],[34.06,-118.24]]},
+ gc:{v:"trip",days:["d31"],col:"#ffb547",pts:[[36.12,-115.16],[36.016,-114.7377],[35.59,-114.27],[35.8,-113.95],[36.0119,-113.8108]]},
+ mm:{v:"trip",days:["d30"],col:"#5ee39a",pts:[[36.13,-115.16],[35.95,-115.2],[35.8385,-115.2705]]}
+};
+
+const svg=document.getElementById("map");const NS="http://www.w3.org/2000/svg";
+let view="lv",day="all",sel=null,vb=null;
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const ptsStr=(v,pts)=>pts.map(([a,b])=>proj(v,a,b).map(n=>n.toFixed(1)).join(",")).join(" ");
+
+function dayStops(d,v){
+ if(!d)return[];const out=[];
+ d.steps.forEach(s=>{const id=s[1];if(!id)return;if(P[id].v===v&&out[out.length-1]!==id)out.push(id)});
+ return out;
+}
+
+function draw(){
+ const v=VIEWS[view];svg.innerHTML="";
+ if(!vb)vb={x:0,y:0,w:v.W,h:v.H};
+ svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+ const fs=v.fs*(vb.w/v.W)**0.55;
+ // grid
+ const grid=el("g",{opacity:.35},svg);
+ for(let i=0;i<=10;i++){el("line",{x1:i*v.W/10,y1:0,x2:i*v.W/10,y2:v.H,stroke:"#2a2348","stroke-width":1},grid);el("line",{x1:0,y1:i*v.H/10,x2:v.W,y2:i*v.H/10,stroke:"#2a2348","stroke-width":1},grid)}
+ const G=GEO[view];
+ if(view==="la"){ // ocean fill
+  const c=[[34.165,-118.53],...G.roads[0].pts,[33.965,-118.53]];
+  el("polygon",{points:ptsStr(v,c),fill:"rgba(63,224,232,.07)"},svg);
+ }
+ if(view==="trip"){
+  const c=[[37,-118.9],[34.1,-118.9],...G.roads[0].pts,[33.55,-118.9]];
+  el("polygon",{points:ptsStr(v,c),fill:"rgba(63,224,232,.07)"},svg);
+ }
+ G.roads.forEach(r=>{
+  const pl=el("polyline",{points:ptsStr(v,r.pts),class:"road","stroke-width":r.w*(vb.w/v.W)**0.5},svg);
+  if(r.coast)pl.setAttribute("stroke","rgba(63,224,232,.55)");
+  if(r.border){pl.setAttribute("stroke","#4a3f74");pl.setAttribute("stroke-dasharray","8 6")}
+  if(r.label){const p=proj(v,...r.pts[r.at]);const t=el("text",{x:p[0]+fs*.6,y:p[1],class:"small-label","font-size":fs*.62},svg);t.textContent=r.label}
+ });
+ G.rails.forEach(r=>{
+  el("polyline",{points:ptsStr(v,r.pts),class:"rail",stroke:r.col,"stroke-width":2.2*(vb.w/v.W)**0.5,opacity:.75},svg);
+  const p=proj(v,...r.pts[Math.floor(r.pts.length/2)]);const t=el("text",{x:p[0]+fs*.5,y:p[1]-fs*.4,class:"small-label","font-size":fs*.6,fill:r.col},svg);t.textContent=r.label;t.style.fill=r.col;
+ });
+ G.labels.forEach(([s,la,ln,rot])=>{const p=proj(v,la,ln);const t=el("text",{x:p[0],y:p[1],class:"geo-label","font-size":fs*1.05,"text-anchor":"middle",transform:`rotate(${rot} ${p[0]} ${p[1]})`},svg);t.textContent=s});
+ // routes
+ const D=DAYS.find(d=>d.id===day);
+ for(const k in ROUTES){const r=ROUTES[k];if(r.v!==view)continue;if(day!=="all"&&!r.days.includes(day))continue;
+  el("polyline",{points:ptsStr(v,r.pts),class:"route",stroke:r.col,"stroke-width":3*(vb.w/v.W)**0.5},svg)}
+ const stops=dayStops(D,view);
+ if(stops.length>1)el("polyline",{points:ptsStr(v,stops.map(id=>[P[id].lat,P[id].lng])),class:"route",stroke:D.city==="la"?"#3fe0e8":"#ff4fa3","stroke-width":3*(vb.w/v.W)**0.5},svg);
+ // pins
+ const r=fs*0.55;
+ Object.entries(P).filter(([,p])=>p.v===view).forEach(([id,p])=>{
+  const[x,y]=proj(v,p.lat,p.lng);const col=CATS[p.cat][1];
+  const inDay=day==="all"||stops.includes(id)||(view==="trip"&&D&&((D.city==="la"&&id==="lacity")||(D.city!=="la"&&id==="lvcity")||D.steps.some(s=>s[1]===id)));
+  const g=el("g",{class:"pin"+(inDay?"":" dim")+(sel===id?" sel":""),tabindex:0,role:"button","aria-label":p.n},svg);
+  el("circle",{cx:x,cy:y,r:r,class:"ring",stroke:col},g);
+  el("circle",{cx:x,cy:y,r:r,class:"core",fill:col},g);
+  const idx=stops.indexOf(id);
+  if(idx>=0){const n=el("text",{x:x,y:y+r*.42,class:"num","font-size":r*1.15,"text-anchor":"middle"},g);n.textContent=idx+1}
+  const right=p.lp!=="l";const t=el("text",{x:x+(right?r*1.6:-r*1.6),y:y+fs*.32+(p.dy||0)*(vb.w/v.W),"font-size":fs*.78,"text-anchor":right?"start":"end"},g);t.textContent=p.n;
+  const go=()=>{if(p.goto){setView(p.goto)}else{sel=id;showDetail(id);draw()}};
+  g.addEventListener("click",e=>{if(moved)return;go()});
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+ });
+}
+
+function showDetail(id){
+ const p=P[id],[cn,cc]=CATS[p.cat];const box=document.getElementById("detail");
+ const onDays=DAYS.filter(d=>d.steps.some(s=>s[1]===id)).map(d=>d.short).join(", ");
+ box.innerHTML=`<span class="cat" style="background:${cc}">${cn}</span><h3>${p.n}</h3>
+ <dl>${onDays?`<dt>When</dt><dd>${onDays}</dd>`:""}
+ <dt>See</dt><dd><ul>${p.see.map(s=>`<li>${s}</li>`).join("")}</ul></dd>
+ ${p.how?`<dt>Get there</dt><dd>${p.how}</dd>`:""}
+ <dt>Tip</dt><dd>${p.tip}</dd></dl>
+ <div style="display:flex;flex-wrap:wrap;gap:8px"><a class="btn" style="background:var(--amber)" href="https://earth.google.com/web/search/${encodeURIComponent(p.q)}" target="_blank" rel="noopener">Fly there in 3D ↗</a><a class="btn" href="${gm(p.q)}" target="_blank" rel="noopener">Google Maps ↗</a></div>`;
+}
+function intro(){
+ const D=DAYS.find(d=>d.id===day);const box=document.getElementById("detail");
+ if(!D){box.innerHTML=`<span class="eyebrow">How to use</span><h3>Tap any glowing pin</h3><p class="note">Pink = Vegas sights, cyan = LA, amber = Arizona and sunsets, green = free sights, lilac = hotels and transport. Pick a day above to number that day's stops in order.</p><div class="legend" style="flex-direction:column;gap:6px">${Object.values(CATS).filter((c,i,a)=>a.findIndex(x=>x[0]===c[0])===i).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join("")}</div>`;return}
+ box.innerHTML=`<span class="eyebrow">${D.short} · ${D.win}</span><h3>${D.title}</h3><ol class="steps" style="padding:0">${D.steps.map(s=>`<li><span class="t">${s[0]}</span><span>${s[2]}${s[4]?'<span class="tag cab">CAB</span>':""}${s[5]?'<span class="tag book">BOOK</span>':""}</span></li>`).join("")}</ol>`;
+}
+function setView(v,keepDay){
+ view=v;vb=null;sel=null;
+ document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.view===v));
+ draw();if(!keepDay)intro();
+}
+function setDay(id){
+ day=id;sel=null;
+ document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.day===id));
+ const D=DAYS.find(d=>d.id===id);
+ if(D){const v=D.city==="az"?"trip":D.city;view=v;vb=null;document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.view===v))}
+ draw();intro();
+}
+
+// chips
+const chips=document.getElementById("chips");
+[["all","All days",""],...DAYS.map(d=>[d.id,d.short,d.city==="la"?"LA":d.city==="az"?"AZ":"LV"])].forEach(([id,l,s])=>{
+ const b=document.createElement("button");b.className="chip";b.dataset.day=id;b.setAttribute("aria-pressed",id==="all");b.innerHTML=l+(s?`<small>${s}</small>`:"");b.onclick=()=>setDay(id);chips.appendChild(b)});
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>setView(t.dataset.view,true));
+
+// pan & zoom
+const box=document.getElementById("mapbox");let pts=new Map(),start=null,moved=false;
+function toSvg(cx,cy){const r=svg.getBoundingClientRect();const v=VIEWS[view];const s=Math.max(vb.w/r.width,vb.h/r.height);const ox=(r.width*s-vb.w)/2,oy=(r.height*s-vb.h)/2;return[vb.x+(cx-r.left)*s-ox,vb.y+(cy-r.top)*s-oy,s]}
+function zoomAt(f,cx,cy){const v=VIEWS[view];const nw=Math.min(v.W*1.2,Math.max(v.W/12,vb.w*f));const k=nw/vb.w;const[px,py]=cx==null?[vb.x+vb.w/2,vb.y+vb.h/2]:toSvg(cx,cy);vb={x:px-(px-vb.x)*k,y:py-(py-vb.y)*k,w:vb.w*k,h:vb.h*k};draw()}
+box.addEventListener("wheel",e=>{e.preventDefault();zoomAt(e.deltaY>0?1.15:1/1.15,e.clientX,e.clientY)},{passive:false});
+box.addEventListener("pointerdown",e=>{pts.set(e.pointerId,[e.clientX,e.clientY]);moved=false;start={vb:{...vb},pts:new Map(pts)};});
+box.addEventListener("pointermove",e=>{
+ if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);
+ const r=svg.getBoundingClientRect();const s=Math.max(start.vb.w/r.width,start.vb.h/r.height);
+ if(pts.size===1&&start.pts.size===1){const[a]=start.pts.values();const[b]=pts.values();const dx=b[0]-a[0],dy=b[1]-a[1];if(Math.hypot(dx,dy)>4){moved=true;box.setPointerCapture(e.pointerId)}if(moved){vb={...start.vb,x:start.vb.x-dx*s,y:start.vb.y-dy*s};draw()}}
+ else if(pts.size===2&&start.pts.size===2){moved=true;const[a1,a2]=[...start.pts.values()],[b1,b2]=[...pts.values()];const d0=Math.hypot(a1[0]-a2[0],a1[1]-a2[1]),d1=Math.hypot(b1[0]-b2[0],b1[1]-b2[1]);if(d0>0){vb={...start.vb};zoomAt(d0/d1,(b1[0]+b2[0])/2,(b1[1]+b2[1])/2)}}
+});
+const end=e=>{pts.delete(e.pointerId);start={vb:{...vb},pts:new Map(pts)};setTimeout(()=>{if(!pts.size)moved=false},0)};
+box.addEventListener("pointerup",end);box.addEventListener("pointercancel",end);
+document.getElementById("zin").onclick=()=>zoomAt(1/1.4);
+document.getElementById("zout").onclick=()=>zoomAt(1.4);
+document.getElementById("zreset").onclick=()=>{vb=null;draw()};
+
+/* ---------- Day cards ---------- */
+const daysEl=document.getElementById("days");
+DAYS.forEach(d=>{
+ const c=document.createElement("article");c.className="day "+(d.city==="lv"?"":d.city);
+ c.innerHTML=`<div class="dayhead"><h3>${d.title}</h3><span class="mono">${d.short}</span></div><span class="window">${d.win}</span>
+ <ol class="steps">${d.steps.map(s=>`<li><span class="t">${s[0]}</span><span>${s[2]}${s[4]?'<span class="tag cab">CAB</span>':""}${s[5]?'<span class="tag book">BOOK</span>':""}${s[3]?`<span class="how">${s[3]}</span>`:""}</span></li>`).join("")}</ol>`;
+ const b=document.createElement("button");b.className="showmap";b.textContent="Show this day on the map ↑";
+ b.onclick=()=>{setDay(d.id);document.querySelector(".mapcard").scrollIntoView({behavior:"smooth",block:"start"})};
+ c.appendChild(b);daysEl.appendChild(c);
+});
+document.getElementById("rides").innerHTML=RIDES.map(([v,n,d])=>`<div class="ride"><span class="verdict v-${v}">${v.toUpperCase()}</span><div><b>${n}</b><span>${d}</span></div></div>`).join("");
+const cards=(id,arr)=>document.getElementById(id).innerHTML=arr.map(([h,p,m])=>`<div class="mini"><span class="mono">${m}</span><h3>${h}</h3><p>${p}</p></div>`).join("");
+cards("lacards",LACARDS);cards("azcards",AZCARDS);
+
+setView("lv");
+</script>

@@ -1,0 +1,8 @@
+# Only the site itself and the offline exports get published.
+# Build sources, the old prototype and the handoff notes (which hold Sai's
+# booking details) stay local.
+src/
+legacy/
+.claude/
+CLAUDE.md
+CLAUDE 2.md

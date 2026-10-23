@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vegas Trip">
+<meta name="theme-color" content="#130f22">
+<meta name="robots" content="noindex">
+<title>Sai's Vegas & LA Trip</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#130f22;--panel:rgba(29,23,51,.94);--panel-solid:#1d1733;--line:#3a3160;
+  --sand:#f3e7d3;--muted:#a89cc8;--pink:#ff4fa3;--cyan:#3fe0e8;--amber:#ffb547;
+  --go:#5ee39a;--maybe:#ffd166;--skip:#ff6b6b;
+  --f-display:"Bungee",Impact,"Arial Black",sans-serif;
+  --f-body:"Figtree",-apple-system,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --sheet-h:44vh;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--night);color:var(--sand);font-family:var(--f-body);overflow:hidden}
+#map{position:fixed;inset:0}
+button{font-family:inherit}
+a{color:var(--cyan)}
+
+/* top bar */
+.top{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px));pointer-events:none}
+.brand{pointer-events:auto;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:14px;padding:8px 12px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.brand h1{margin:0;font:400 17px/1.1 var(--f-display);color:var(--sand);text-shadow:0 0 6px var(--pink),0 0 14px rgba(255,79,163,.55)}
+.brand h1 span{color:var(--cyan);text-shadow:0 0 6px var(--cyan)}
+.brand small{font:500 10.5px var(--f-mono);color:var(--muted);letter-spacing:.06em}
+.ctrls{pointer-events:auto;display:flex;flex-direction:column;gap:6px}
+.ctl{background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--sand);border:1px solid var(--line);border-radius:12px;
+  font:700 12px var(--f-body);padding:9px 11px;min-width:64px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.ctl[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:var(--sand)}
+
+/* sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;height:var(--sheet-h);max-height:calc(100% - 80px);background:var(--panel);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;transition:height .35s cubic-bezier(.2,.8,.2,1)}
+.sheet.big{--sheet-h:86vh}
+.sheet.small{--sheet-h:150px}
+.grab{border:0;background:none;padding:8px 0 4px;cursor:pointer;display:flex;justify-content:center}
+.grab i{display:block;width:44px;height:5px;border-radius:3px;background:#5a4f86}
+.tabs{display:flex;gap:6px;padding:0 max(14px,env(safe-area-inset-left,0px)) 8px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:700 13px var(--f-body);padding:8px 4px;border-radius:10px;cursor:pointer}
+.tab[aria-selected="true"]{background:#2b2349;color:var(--sand)}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 18px) max(14px,env(safe-area-inset-left,0px))}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--sand);font:700 12px var(--f-body);padding:7px 11px;border-radius:999px;cursor:pointer}
+.chip small{font:500 10px var(--f-mono);color:var(--muted);margin-left:3px}
+.chip[aria-pressed="true"]{background:var(--sand);color:var(--night);border-color:var(--sand)}
+.chip[aria-pressed="true"] small{color:#5a4f86}
+.dayhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 10px}
+.dayhead h2{margin:0;font:400 17px/1.2 var(--f-display);letter-spacing:.02em}
+.win{display:inline-block;font:700 11px var(--f-mono);color:var(--go);background:rgba(94,227,154,.12);padding:3px 8px;border-radius:6px;margin-top:4px}
+.fly{flex:0 0 auto;border:0;border-radius:12px;padding:10px 12px;font:800 12px var(--f-body);color:var(--night);background:linear-gradient(135deg,var(--pink),var(--amber));cursor:pointer;box-shadow:0 0 16px rgba(255,79,163,.45)}
+.fly.stop{background:var(--sand)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.step{display:grid;grid-template-columns:28px 52px 1fr;gap:8px;align-items:start;padding:10px;border-radius:12px;background:rgba(19,15,34,.55);cursor:pointer;border:1px solid transparent}
+.step.on{border-color:var(--pink);box-shadow:0 0 14px rgba(255,79,163,.25)}
+.step.noplace{cursor:default}
+.n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 11px var(--f-mono);color:var(--night);background:var(--pink)}
+.n.blank{background:#3a3160;color:var(--muted)}
+.t{font:700 12px var(--f-mono);color:var(--amber);padding-top:3px}
+.txt{font-size:14px;line-height:1.45}
+.txt .how{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.tag{font:700 10px var(--f-mono);padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:1px}
+.cab{background:rgba(255,181,71,.2);color:var(--amber)}
+.book{background:rgba(255,79,163,.2);color:var(--pink)}
+h3{margin:14px 0 8px;font-size:15px}
+.ride{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:9px;border-radius:10px;background:rgba(19,15,34,.55);margin-bottom:6px}
+.v{font:800 10.5px var(--f-mono);text-align:center;padding:4px 0;border-radius:6px;color:var(--night);align-self:start}
+.v-go{background:var(--go)}.v-maybe{background:var(--maybe)}.v-skip{background:var(--skip)}
+.ride b{display:block;font-size:14px}.ride span{font-size:12.5px;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.tl li{position:relative;font-size:13.5px;line-height:1.45}
+.tl li::before{content:"";position:absolute;left:-20px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.tl .t{display:block;padding:0}
+.card{background:rgba(19,15,34,.55);border-radius:12px;padding:12px;margin-bottom:8px;font-size:13.5px;line-height:1.45}
+.card b{display:block;margin-bottom:2px;font-size:14px}
+.verdict{border-left:4px solid var(--amber);background:rgba(255,181,71,.1);padding:10px 12px;border-radius:0 10px 10px 0;font-size:13.5px;line-height:1.45;margin-bottom:10px}
+.note{font-size:12px;color:var(--muted)}
+
+/* markers */
+.mk{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:800 12px var(--f-mono);color:var(--night);
+  border:3px solid #130f22;box-shadow:0 0 0 2px rgba(255,255,255,.8),0 0 18px currentColor;cursor:pointer;position:relative}
+.mk::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid currentColor;animation:ping 2.2s ease-out infinite;pointer-events:none}
+@keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.2);opacity:0}}
+.mk.dim{opacity:.35;transform:scale(.75)}
+.mk.dim::after{display:none}
+.mk.dot{width:20px;height:20px;font-size:0}
+
+/* popup */
+.maplibregl-popup-content{background:var(--panel-solid);color:var(--sand);border-radius:14px;padding:14px 14px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:var(--f-body)}
+.maplibregl-popup-tip{border-top-color:var(--panel-solid)!important;border-bottom-color:var(--panel-solid)!important}
+.maplibregl-popup-close-button{color:var(--muted);font-size:20px;padding:2px 8px}
+.pop .cat{font:700 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--night);padding:2px 7px;border-radius:5px;display:inline-block}
+.pop h4{margin:6px 0 6px;font-size:16px;padding-right:18px}
+.pop ul{margin:0 0 6px;padding-left:16px;font-size:13px;line-height:1.4}
+.pop p{margin:4px 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.pop p b{color:var(--sand)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btns a{text-decoration:none;font:700 12px var(--f-body);padding:7px 10px;border-radius:9px;color:var(--night)}
+.b1{background:var(--cyan)}.b2{background:var(--sand)}.b3{background:var(--amber)}
+.maplibregl-ctrl-attrib{font-size:9px}
+.lk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.lk a{font:700 11px var(--f-body);text-decoration:none;color:var(--night);background:var(--cyan);padding:4px 8px;border-radius:7px}
+.lk a.e{background:var(--amber)}
+.nomap{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 76px);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.45}
+.nomap b{color:var(--amber)}
+
+@media (min-width:900px){
+  .sheet,.sheet.big,.sheet.small{left:max(12px,env(safe-area-inset-left,0px));right:auto;top:96px;bottom:12px;width:400px;height:auto;max-height:none;border-radius:20px}
+  .grab{display:none}
+  .tabs{padding-top:12px}
+}
+@media (prefers-reduced-motion:reduce){.mk::after{animation:none}}
+</style>
+</head>
+<body>
+<div id="map" aria-label="Interactive 3D map"></div>
+
+<div class="top">
+  <div class="brand"><h1>Neon <span>&amp;</span> Pacific</h1><small>OCT 24–31 · VEGAS · LA · CANYON</small></div>
+  <div class="ctrls">
+    <button class="ctl" id="b3d" aria-pressed="true">3D</button>
+    <button class="ctl" id="bsat" aria-pressed="false">Satellite</button>
+    <button class="ctl" id="bme">Me</button>
+  </div>
+</div>
+
+<div class="nomap" id="nomap" hidden><b>The live 3D map can't load in this preview.</b> Open the page from its web link to get it. Your full plan is below, and every stop has buttons that open Google Maps, Apple Maps or 3D.</div>
+<section class="sheet" id="sheet">
+  <button class="grab" id="grab" aria-label="Resize panel"><i></i></button>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="days" aria-selected="true">Days</button>
+    <button class="tab" role="tab" data-t="uni" aria-selected="false">Universal</button>
+    <button class="tab" role="tab" data-t="tips" aria-selected="false">Tips</button>
+  </div>
+  <div class="body" id="body"></div>
+</section>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+const DATA=__DATA__;
+const {P,DAYS,CATS,RIDES,LACARDS,AZCARDS}=DATA;
+const CITYCOL={lv:"#ff4fa3",la:"#3fe0e8",az:"#ffb547"};
+const ROUTES={
+ d25:[[36.12,-115.17],[35.6,-115.4],[35.27,-116.07],[34.9,-117.02],[34.5,-117.4],[34.1,-117.6],[34.0562,-118.2365]],
+ d31:[[36.1361,-115.1522],[36.016,-114.7377],[35.59,-114.27],[35.8,-113.95],[36.0119,-113.8108]],
+ d30:[[36.1361,-115.1522],[36.082,-115.1728],[35.8385,-115.2705]]
+};
+const ZOOM={lv:16.6,la:15.6,trip:14.2};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const places=Object.fromEntries(Object.entries(P).filter(([,p])=>!p.goto));
+let day="d24", flying=false, popup=null, markers=[], is3d=true, isSat=false;
+
+/* ---------- Map ---------- */
+let map=null,geo=null;
+function noMap(){
+  document.getElementById("nomap").hidden=false;
+  document.querySelectorAll(".ctrls .ctl").forEach(b=>b.hidden=true);
+  setSheet("big");render();
+}
+try{
+if(!window.maplibregl)throw new Error("no map engine");
+map=new maplibregl.Map({
+  container:"map",
+  style:"https://tiles.openfreemap.org/styles/liberty",
+  center:[-115.165,36.12],zoom:14.5,pitch:60,bearing:-20,maxPitch:80,
+  attributionControl:{compact:true}
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"bottom-right");
+geo=new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true,showUserHeading:true});
+map.addControl(geo,"bottom-right");
+
+map.on("load",()=>{
+  const layers=map.getStyle().layers;
+  const firstSymbol=(layers.find(l=>l.type==="symbol")||{}).id;
+  // satellite imagery underneath labels
+  map.addSource("sat",{type:"raster",tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],tileSize:256,maxzoom:19,attribution:"Imagery © Esri"});
+  map.addLayer({id:"sat",type:"raster",source:"sat",layout:{visibility:"none"}},firstSymbol);
+  // 3D terrain (Grand Canyon, hills)
+  const DEMTILES=["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"];
+  map.addSource("dem",{type:"raster-dem",tiles:DEMTILES,tileSize:256,encoding:"terrarium",maxzoom:14,attribution:"Terrain: Mapzen/AWS"});
+  map.addSource("demshade",{type:"raster-dem",tiles:DEMTILES,tileSize:256,encoding:"terrarium",maxzoom:14});
+  map.addLayer({id:"hills",type:"hillshade",source:"demshade",paint:{"hillshade-exaggeration":0.35,"hillshade-shadow-color":"#3a2d55"}},firstSymbol);
+  // 3D buildings
+  if(!layers.some(l=>l.type==="fill-extrusion")){
+    map.addLayer({id:"bldg3d",type:"fill-extrusion",source:"openmaptiles","source-layer":"building",minzoom:13.5,
+      paint:{"fill-extrusion-color":["interpolate",["linear"],["coalesce",["get","render_height"],8],0,"#e6dcef",60,"#c9b6ff",200,"#ff8fc6"],
+        "fill-extrusion-height":["coalesce",["get","render_height"],8],
+        "fill-extrusion-base":["coalesce",["get","render_min_height"],0],
+        "fill-extrusion-opacity":0.9}},firstSymbol);
+  }
+  // route
+  map.addSource("route",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
+  map.addLayer({id:"route-glow",type:"line",source:"route",paint:{"line-color":["get","c"],"line-width":12,"line-opacity":.25,"line-blur":6}});
+  map.addLayer({id:"route",type:"line",source:"route",layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":3.5,"line-dasharray":[1,2]}});
+  set3d(true);
+  selectDay(day,true);
+});
+map.on("error",e=>console.warn(e&&e.error));
+map.on("moveend",()=>applyTerrain());
+map.on("dragstart",()=>stopFly());
+}catch(err){map=null;console.warn(err);}
+
+/* Terrain is what makes the Grand Canyon read as 3D, but at city zoom it leaves the
+   camera below the raised surface after a flyTo and the map washes out to a blank
+   cream/dark field.  So: relief only out of town or zoomed out, buildings everywhere. */
+const TERRAIN_MAXZOOM=13.2;
+let focusNature=false;
+function wantTerrain(){
+  return !!(is3d&&map&&map.getSource("dem")&&(focusNature||map.getZoom()<TERRAIN_MAXZOOM));
+}
+function applyTerrain(){
+  if(!map||!map.getSource("dem"))return;
+  const on=wantTerrain(),cur=!!map.getTerrain();
+  if(on&&!cur)map.setTerrain({source:"dem",exaggeration:1.25});
+  else if(!on&&cur)map.setTerrain(null);
+}
+/* Call right before any animated camera move. */
+function camStart(){if(map&&map.getTerrain())map.setTerrain(null)}
+function set3d(on){
+  is3d=on;if(!map)return;document.getElementById("b3d").setAttribute("aria-pressed",on);
+  if(!map.getSource("dem"))return;
+  camStart();
+  map.getStyle().layers.filter(l=>l.type==="fill-extrusion").forEach(l=>map.setLayoutProperty(l.id,"visibility",on?"visible":"none"));
+  map.easeTo({pitch:on?60:0,duration:800});
+}
+function setSat(on){
+  isSat=on;if(!map)return;document.getElementById("bsat").setAttribute("aria-pressed",on);
+  map.setLayoutProperty("sat","visibility",on?"visible":"none");
+}
+document.getElementById("b3d").onclick=()=>set3d(!is3d);
+document.getElementById("bsat").onclick=()=>setSat(!isSat);
+document.getElementById("bme").onclick=()=>geo&&geo.trigger();
+
+/* ---------- Helpers ---------- */
+function stopsOf(d){const out=[];d.steps.forEach(s=>{const id=s[1];if(id&&places[id]&&out[out.length-1]!==id)out.push(id)});return out}
+function sheetPad(){const w=innerWidth;if(w>=900)return{top:110,bottom:60,left:440,right:60};const h=document.getElementById("sheet").getBoundingClientRect().height;return{top:110,bottom:h+30,left:40,right:60}}
+function popHTML(id){
+  const p=places[id];const[cn,cc]=CATS[p.cat];const ll=p.lat+","+p.lng;
+  return `<div class="pop"><span class="cat" style="background:${cc}">${cn}</span><h4>${esc(p.n)}</h4>
+  <ul>${p.see.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
+  ${p.how?`<p><b>Get there:</b> ${esc(p.how)}</p>`:""}<p><b>Tip:</b> ${esc(p.tip)}</p>
+  <div class="btns"><a class="b1" href="https://www.google.com/maps/dir/?api=1&destination=${ll}&travelmode=transit" target="_blank" rel="noopener">Directions</a>
+  <a class="b2" href="https://maps.apple.com/?daddr=${ll}&dirflg=r" target="_blank" rel="noopener">Apple Maps</a>
+  <a class="b3" href="https://earth.google.com/web/search/${encodeURIComponent(p.q)}" target="_blank" rel="noopener">Earth 3D</a></div></div>`;
+}
+function openPop(id){
+  if(popup)popup.remove();
+  const p=places[id];
+  popup=new maplibregl.Popup({offset:22,maxWidth:"290px",focusAfterOpen:false}).setLngLat([p.lng,p.lat]).setHTML(popHTML(id)).addTo(map);
+}
+function focus(id,opts={}){
+  const p=places[id];if(!map)return Promise.resolve();const z=ZOOM[p.v]||15;
+  focusNature=(p.cat==="nature"||p.cat==="free"&&p.v==="trip");camStart();
+  document.querySelectorAll(".step").forEach(s=>s.classList.toggle("on",s.dataset.id===id));
+  return new Promise(res=>{
+    // The canyon only reads as a canyon from far enough back and looking north-east
+    // across it; closer in, the camera just faces the flat plateau behind the rim.
+    const wild=p.cat==="nature"&&p.v==="trip";
+    map.flyTo({center:[p.lng,p.lat],zoom:wild?12.4:z,pitch:is3d?(wild?70:62):0,
+      bearing:opts.bearing??(wild?-35:map.getBearing()+40),duration:opts.duration||2600,padding:sheetPad(),essential:true});
+    map.once("moveend",()=>{openPop(id);res()});
+  });
+}
+
+function linkRow(id){const p=places[id],ll=p.lat+","+p.lng;
+  return `<span class="lk"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.q)}" target="_blank" rel="noopener">Map</a><a href="https://www.google.com/maps/dir/?api=1&destination=${ll}&travelmode=transit" target="_blank" rel="noopener">Directions</a><a href="https://maps.apple.com/?daddr=${ll}&dirflg=r" target="_blank" rel="noopener">Apple</a><a class="e" href="https://earth.google.com/web/search/${encodeURIComponent(p.q)}" target="_blank" rel="noopener">3D</a></span>`}
+/* ---------- Markers & day ---------- */
+function drawMarkers(){
+  if(!map)return;markers.forEach(m=>m.remove());markers=[];
+  const D=DAYS.find(d=>d.id===day);const stops=D?stopsOf(D):[];
+  Object.entries(places).forEach(([id,p])=>{
+    const i=stops.indexOf(id);const el=document.createElement("div");
+    const col=p.cat==="stay"?"#c9b6ff":p.cat==="extra"?"#a89cc8":(p.v==="la"?CITYCOL.la:p.v==="trip"?CITYCOL.az:CITYCOL.lv);
+    el.className="mk"+(i<0?" dim dot":"");el.style.background=col;el.style.color=col;
+    el.textContent=i>=0?i+1:"";el.title=p.n;
+    el.addEventListener("click",e=>{e.stopPropagation();stopFly();focus(id)});
+    markers.push(new maplibregl.Marker({element:el}).setLngLat([p.lng,p.lat]).addTo(map));
+  });
+}
+function selectDay(id,first){
+  day=id;stopFly();if(popup)popup.remove();
+  if(!map){renderDays();return}
+  focusNature=false;camStart();
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.d===id));
+  const D=DAYS.find(d=>d.id===id);const stops=stopsOf(D);
+  const c=CITYCOL[D.city];
+  const feats=[];
+  if(stops.length>1)feats.push({type:"Feature",properties:{c},geometry:{type:"LineString",coordinates:stops.map(s=>[places[s].lng,places[s].lat])}});
+  if(ROUTES[id])feats.push({type:"Feature",properties:{c:"#c9b6ff"},geometry:{type:"LineString",coordinates:ROUTES[id].map(([a,b])=>[b,a])}});
+  if(map&&map.getSource("route"))map.getSource("route").setData({type:"FeatureCollection",features:feats});
+  drawMarkers();renderDays();
+  const pts=[...stops.map(s=>[places[s].lng,places[s].lat]),...(ROUTES[id]&&id!=="d25"?ROUTES[id].map(([a,b])=>[b,a]):[])];
+  const lv=stops.filter(s=>places[s].v==="lv").map(s=>[places[s].lng,places[s].lat]);
+  const use=(id==="d31"?pts:(lv.length>1&&D.city==="lv"?lv:pts));
+  if(map&&use.length){
+    const b=use.reduce((b,p)=>b.extend(p),new maplibregl.LngLatBounds(use[0],use[0]));
+    map.fitBounds(b,{padding:sheetPad(),pitch:is3d?55:0,bearing:-25,duration:first?0:2200,maxZoom:15.5});
+  }
+}
+
+/* ---------- Fly-through ---------- */
+let flyToken=0;
+async function flyDay(){
+  if(!map)return;
+  if(flying){stopFly();return}
+  const D=DAYS.find(d=>d.id===day);const stops=stopsOf(D);
+  flying=true;const tok=++flyToken;updateFlyBtn();
+  setSheet("small");
+  let b=map.getBearing();
+  for(const id of stops){
+    if(tok!==flyToken)return;
+    b+=60;await focus(id,{bearing:b,duration:3800});
+    if(tok!==flyToken)return;
+    await new Promise(r=>{map.easeTo({bearing:b+25,duration:3000,easing:t=>t});setTimeout(r,3000)});
+  }
+  if(tok===flyToken){flying=false;updateFlyBtn()}
+}
+function stopFly(){if(!flying)return;flying=false;flyToken++;if(map)map.stop();updateFlyBtn()}
+function updateFlyBtn(){const b=document.getElementById("fly");if(b){b.textContent=flying?"■ Stop tour":"▶ Fly this day";b.classList.toggle("stop",flying)}}
+
+/* ---------- Sheet ---------- */
+const sheet=document.getElementById("sheet");
+function setSheet(s){sheet.classList.remove("big","small");if(s)sheet.classList.add(s)}
+document.getElementById("grab").onclick=()=>{
+  if(sheet.classList.contains("small"))setSheet("");else if(sheet.classList.contains("big"))setSheet("small");else setSheet("big")};
+let tab="days";
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{tab=t.dataset.t;document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));render();if(sheet.classList.contains("small"))setSheet("")});
+
+const body=document.getElementById("body");
+function renderDays(){
+  if(tab!=="days")return;
+  const D=DAYS.find(d=>d.id===day);const stops=stopsOf(D);
+  const chips=DAYS.map(d=>`<button class="chip" data-d="${d.id}" aria-pressed="${d.id===day}">${d.short}<small>${d.city==="la"?"LA":d.city==="az"?"AZ":"LV"}</small></button>`).join("");
+  const steps=D.steps.map(s=>{
+    const id=s[1];const ok=id&&places[id];const i=ok?stops.indexOf(id):-1;
+    return `<li class="step${ok?"":" noplace"}" ${ok?`data-id="${id}"`:""}><span class="n${i<0?" blank":""}" style="${i>=0?`background:${CITYCOL[places[id].v==="la"?"la":places[id].v==="trip"?"az":"lv"]}`:""}">${i>=0?i+1:"·"}</span>
+      <span class="t">${esc(s[0])}</span><span class="txt">${esc(s[2])}${s[4]?'<span class="tag cab">CAB</span>':""}${s[5]?'<span class="tag book">BOOK</span>':""}${s[3]?`<span class="how">${esc(s[3])}</span>`:""}${ok?linkRow(id):""}</span></li>`}).join("");
+  body.innerHTML=`<div class="chips">${chips}</div>
+   <div class="dayhead"><div><h2>${esc(D.title)}</h2><span class="win">${esc(D.win)}</span></div><button class="fly" id="fly">▶ Fly this day</button></div>
+   <ol class="steps">${steps}</ol>`;
+  body.querySelectorAll(".chip").forEach(c=>c.onclick=()=>selectDay(c.dataset.d));
+  body.querySelectorAll(".step[data-id]").forEach(s=>s.onclick=(e)=>{if(e.target.closest("a")||!map)return;stopFly();if(innerWidth<900)setSheet("small");focus(s.dataset.id)});
+  const fb=document.getElementById("fly");if(map){fb.onclick=flyDay;updateFlyBtn()}else fb.hidden=true;
+  const chip=body.querySelector('.chip[aria-pressed="true"]');try{chip&&chip.scrollIntoView({inline:"center",block:"nearest"})}catch(e){}
+}
+function renderUni(){
+  body.innerHTML=`<div class="dayhead"><div><h2>Universal, no scary rides</h2><span class="win">Sun Oct 25 · open 8 AM – 6 PM</span></div></div>
+  <ol class="tl">
+   <li><span class="t">9:20</span><b>Studio Tour first.</b> ~60-min tram through real backlots. Small staged surprises, nothing drops or spins.</li>
+   <li><span class="t">10:30</span><b>Secret Life of Pets: Off the Leash.</b> Gentle dark ride.</li>
+   <li><span class="t">11:00</span><b>Wizarding World.</b> Hogsmeade, Ollivanders wand show, Hogwarts photos, Butterbeer.</li>
+   <li><span class="t">12:15</span><b>Lunch</b> at Three Broomsticks or Krusty Burger. WaterWorld show if a time fits.</li>
+   <li><span class="t">1:15</span><b>Starway escalators</b> down to the Lower Lot (~10 min).</li>
+   <li><span class="t">1:30</span><b>Super Nintendo World.</b> Mario Kart: Bowser's Challenge (no drops) and Power-Up Band games.</li>
+   <li><span class="t">2:30</span><b>Kung Fu Panda Adventure</b> back on the Upper Lot, then walk out through Springfield.</li>
+   <li><span class="t">3:00</span><b>Exit</b> to Universal City/Studio City station.</li>
+  </ol>
+  <h3>Ride guide for you</h3>
+  ${RIDES.map(([v,n,d])=>`<div class="ride"><span class="v v-${v}">${v.toUpperCase()}</span><div><b>${esc(n)}</b><span>${esc(d)}</span></div></div>`).join("")}
+  <p class="note">Park closes 6 PM for Halloween Horror Nights (a separate scare event). Use the Universal app for live waits and show times.</p>`;
+}
+function renderTips(){
+  body.innerHTML=`<div class="verdict"><b>Santa Monica sunset: yes, go.</b> Sunset is about 6:05 PM over the Pacific; the pier lights and Ferris wheel switch on as the sky turns orange. Be there by 5:30.</div>
+  <h3>Getting around</h3>
+  <div class="card"><b>The Deuce bus · Vegas</b>Whole Strip to Fremont, 24 hours. $8 for 24 hours, $20 for 3 days, in the rideRTC app.</div>
+  <div class="card"><b>Las Vegas Monorail</b>Sahara to MGM Grand, stop at Westgate. 24-hour pass $15. Mon until midnight, Tue–Thu until 2 AM, Fri–Sun until 3 AM.</div>
+  <div class="card"><b>LA Metro</b>B Line: Union Station → Hollywood/Highland → Universal City. E Line: 7th St/Metro → Downtown Santa Monica. Tap phone wallet or TAP card.</div>
+  <div class="card"><b>Only 4 cab rides</b>Airport → Circus Circus · Hollywood → Santa Monica · Seven Magic Mountains (driver waits) · Westgate → airport.</div>
+  <h3>Arizona day</h3>
+  ${AZCARDS.map(([h,p,m])=>`<div class="card"><b>${esc(h)} <span class="note">· ${esc(m)}</span></b>${esc(p)}</div>`).join("")}
+  <h3>Book this week</h3>
+  <div class="card">✓ Grand Canyon West + Hoover Dam tour with Skywalk (confirm pickup 48 h ahead)<br>✓ The Wizard of Oz at Sphere, Fri Oct 30, 3–4 PM<br>✓ High Roller night ticket, Tue Oct 27<br>✓ rideRTC and Monorail passes<br>✓ Check exactly where your LA bus stops</div>
+  <p class="note">Tip: tap Share → Add to Home Screen to keep this map like an app.</p>`;
+}
+function render(){if(tab==="days")renderDays();else if(tab==="uni")renderUni();else renderTips()}
+render();
+if(!map)noMap();
+</script>
+</body>
+</html>
