@@ -43,11 +43,17 @@ a{color:var(--cyan)}
 /* sheet */
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;height:var(--sheet-h);max-height:calc(100% - 80px);background:var(--panel);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.45);
-  display:flex;flex-direction:column;transition:height .35s cubic-bezier(.2,.8,.2,1)}
-.sheet.big{--sheet-h:86vh}
-.sheet.small{--sheet-h:150px}
-.grab{border:0;background:none;padding:8px 0 4px;cursor:pointer;display:flex;justify-content:center}
-.grab i{display:block;width:44px;height:5px;border-radius:3px;background:#5a4f86}
+  display:flex;flex-direction:column;transition:height .34s cubic-bezier(.2,.8,.2,1)}
+/* While a finger is on the handle the height follows it frame by frame, so the
+   animation has to be off or every move would chase a 340ms ease. */
+.sheet.dragging{transition:none}
+/* A big target: the handle is the whole top strip of the sheet, and touch-action:none
+   is what stops Safari from treating the drag as a page scroll. */
+.grab{border:0;background:none;padding:11px 0 7px;cursor:grab;display:flex;justify-content:center;
+  touch-action:none;flex:0 0 auto}
+.sheet.dragging .grab{cursor:grabbing}
+.grab i{display:block;width:52px;height:5px;border-radius:3px;background:#5a4f86;transition:background .2s}
+.grab:active i,.sheet.dragging .grab i{background:var(--sand)}
 .tabs{display:flex;gap:6px;padding:0 max(14px,env(safe-area-inset-left,0px)) 8px}
 .tab{flex:1;border:0;background:transparent;color:var(--muted);font:700 13px var(--f-body);padding:8px 4px;border-radius:10px;cursor:pointer}
 .tab[aria-selected="true"]{background:#2b2349;color:var(--sand)}
@@ -94,7 +100,18 @@ h3{margin:14px 0 8px;font-size:15px}
    transform onto the element it is given, so the pin lives in a wrapper and does
    its rotating there. The pin is 34px square; rotating it -45deg puts the square
    corner 24px below centre, so translateY(-24px) lands that tip on the coordinate. */
-.mkwrap{width:34px;height:34px;cursor:pointer;position:relative;will-change:transform}
+/* position:absolute, not relative: MapLibre positions a marker purely with a transform
+   and relies on its own .maplibregl-marker{position:absolute}.  This stylesheet loads
+   after maplibre-gl.css, so a relative here put every pin back in normal flow and each
+   one was painted up to 200px BELOW the place it belongs to. */
+.mkwrap{width:34px;height:34px;cursor:pointer;position:absolute;top:0;left:0;will-change:transform}
+/* A pin drawn at a fixed pixel size reads as page furniture: zoom out and 26 full-size
+   teardrops cover the city. --mks is rewritten from the map's zoom (see setPinScale),
+   so a pin grows as you come in and shrinks as you pull back, like a real map label.
+   The scale lives on its own layer because the tip of the pin lands exactly on the
+   wrapper's centre, so scaling about 50% 50% leaves the tip on its coordinate. */
+.mkscale{position:absolute;inset:0;transform:scale(var(--mks,1));transform-origin:50% 50%}
+.mkwrap.dim .mkscale{transform:scale(calc(var(--mks,1) * .74))}
 /* No backdrop-filter here: MapLibre moves every marker on every frame of a pinch or
    zoom, and re-blurring what is behind 20-odd pins each frame is what made them lag
    behind the map on a phone.  A baked gradient looks the same and costs nothing. */
@@ -110,20 +127,43 @@ h3{margin:14px 0 8px;font-size:15px}
 /* Only the stop you are looking at pulses; a ring on every stop at once is noise. */
 .mk.active::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--c);animation:ping 2.2s ease-out infinite;pointer-events:none}
 @keyframes ping{from{transform:scale(1);opacity:.9}to{transform:scale(2.2);opacity:0}}
-.mk.dim{opacity:.72;transform:translateY(-17px) rotate(-45deg) scale(.72)}
+.mk.dim{opacity:.72}
 .mk.dim svg{stroke-width:2.8}
 
-/* me: the little figure standing on the stop Sai is at right now */
-.mewrap{width:46px;height:52px;pointer-events:none;will-change:transform;position:relative}
-.me{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;
-  display:grid;place-items:center;color:#0a0714;
-  background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.1) 60%),var(--go);
-  border:2px solid rgba(255,255,255,.85);
-  box-shadow:0 0 0 2px rgba(10,7,20,.8),0 6px 14px rgba(0,0,0,.5),0 0 20px var(--go)}
-.me svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.meshadow{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:22px;height:7px;border-radius:50%;
-  background:rgba(10,7,20,.55);filter:blur(1.5px)}
-.mering{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);width:34px;height:14px;border-radius:50%;
+/* me: a standing figure on the stop Sai is at right now.  Not a badge with a glyph in
+   it — an actual little person, drawn twice (a dark ink pass under a green skin pass)
+   so he stays readable on satellite imagery, with his head, arms and legs in their own
+   groups so they can move.  Idle: he breathes and sways.  While the next leg is a walk
+   his legs and arms swing, so the figure says what he is about to do. */
+.mewrap{width:44px;height:58px;pointer-events:none;will-change:transform;position:absolute;top:0;left:0;z-index:3}
+.mescale{position:absolute;inset:0;transform:scale(var(--mks,1));transform-origin:50% 100%}
+.me{position:absolute;left:0;right:0;bottom:0;height:100%;display:block}
+.me svg{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:34px;height:54px;overflow:visible}
+.me .ink,.me .skin{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.me .ink{stroke:#0a0714;stroke-width:7}
+.me .ink circle{fill:#0a0714;stroke-width:3.4}
+.me .skin{stroke:var(--go);stroke-width:4.2;filter:drop-shadow(0 0 7px rgba(94,227,154,.75))}
+.me .skin circle{fill:var(--go);stroke-width:0}
+.meground{fill:rgba(10,7,20,.5)}
+.mefig{animation:breathe 3.2s ease-in-out infinite}
+.mearm-l{transform-origin:100% 0}.mearm-r{transform-origin:0 0}
+.meleg-l{transform-origin:100% 0}.meleg-r{transform-origin:0 0}
+.mearm-l,.mearm-r,.meleg-l,.meleg-r,.mefig{transform-box:fill-box}
+.mearm-l{animation:swayA 3.2s ease-in-out infinite}
+.mearm-r{animation:swayB 3.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-1.1px) rotate(.8deg)}}
+@keyframes swayA{0%,100%{transform:rotate(3deg)}50%{transform:rotate(-4deg)}}
+@keyframes swayB{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+/* walking: a quick stride, arms opposite the legs */
+.mewrap.walking .mefig{animation:bob .62s ease-in-out infinite}
+.mewrap.walking .mearm-l{animation:strideA .62s ease-in-out infinite}
+.mewrap.walking .mearm-r{animation:strideB .62s ease-in-out infinite}
+.mewrap.walking .meleg-l{animation:strideB .62s ease-in-out infinite}
+.mewrap.walking .meleg-r{animation:strideA .62s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.2px)}}
+@keyframes strideA{0%,100%{transform:rotate(22deg)}50%{transform:rotate(-22deg)}}
+@keyframes strideB{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+.mering{position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);width:36px;height:15px;border-radius:50%;
   border:2px solid var(--go);animation:standing 2.4s ease-out infinite}
 @keyframes standing{from{transform:translateX(-50%) scale(.5);opacity:.85}to{transform:translateX(-50%) scale(1.9);opacity:0}}
 
@@ -186,11 +226,16 @@ h3{margin:14px 0 8px;font-size:15px}
 .nomap b{color:var(--amber)}
 
 @media (min-width:900px){
-  .sheet,.sheet.big,.sheet.small{left:max(12px,env(safe-area-inset-left,0px));right:auto;top:96px;bottom:12px;width:400px;height:auto;max-height:none;border-radius:20px}
+  .sheet{left:max(12px,env(safe-area-inset-left,0px));right:auto;top:96px;bottom:12px;width:400px;height:auto!important;max-height:none;border-radius:20px}
   .grab{display:none}
   .tabs{padding-top:12px}
 }
-@media (prefers-reduced-motion:reduce){.mk.active::after{animation:none}}
+@media (prefers-reduced-motion:reduce){
+  .mk.active::after,.mering,.mefig,.mearm-l,.mearm-r,.meleg-l,.meleg-r,
+  .mewrap.walking .mefig,.mewrap.walking .mearm-l,.mewrap.walking .mearm-r,
+  .mewrap.walking .meleg-l,.mewrap.walking .meleg-r{animation:none}
+  .sheet{transition:none}
+}
 </style>
 </head>
 <body>
@@ -282,6 +327,28 @@ const ROUTES={
  d30:[[36.1361,-115.1522],[36.082,-115.1728],[35.8385,-115.2705]]
 };
 const PERSON=sv('<circle cx="12" cy="4.6" r="2.4"/><path d="M12 7.4v6.4M8.6 10.2 12 8.8l3.4 1.4M9.4 21.5 12 14.6l2.6 6.9"/>');
+/* The figure standing on the map.  Head, torso, two arms and two legs, each limb in
+   its own group so CSS can swing it.  Drawn twice — a dark ink pass, then a green skin
+   pass over it — which is what keeps him visible on satellite imagery.  The two passes
+   share one class list, so they animate in step; a <use> clone of a group in <defs>
+   would be shorter but animating referenced content is not reliable in WebKit. */
+const figPass=cls=>`<g class="${cls} mefig">
+  <g class="meleg-l"><path d="M17 30 9.8 50.5"/></g><g class="meleg-r"><path d="M17 30 24.2 50.5"/></g>
+  <g class="mearm-l"><path d="M17 20 10.6 31"/></g><g class="mearm-r"><path d="M17 20 23.4 31"/></g>
+  <path d="M17 18V32"/><circle cx="17" cy="11" r="5"/></g>`;
+const FIGURE=`<svg viewBox="0 0 34 54" aria-hidden="true">
+  <ellipse class="meground" cx="17" cy="52" rx="8" ry="2.6"/>${figPass("ink")}${figPass("skin")}</svg>`;
+/* Pins drawn at one fixed pixel size are what made the map feel like a page with dots
+   on it.  --mks ties their size to the zoom: small when the whole city is in frame,
+   full size when Sai is standing in a block of it. */
+const PIN_MIN=.42,PIN_MAX=1.12;
+const pinScale=z=>Math.max(PIN_MIN,Math.min(PIN_MAX,.42+(z-9.5)*.1));
+function setPinScale(){
+  const s=pinScale(map?map.getZoom():15);
+  document.documentElement.style.setProperty("--mks",s.toFixed(3));
+  // The nudge that keeps the figure out of the pin has to shrink with him.
+  if(meMarker)meMarker.setOffset([Math.round(25*s),2]);
+}
 const MODEICON={
   walk:sv('<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-5-2.5-3 .5-4 3 2 2 1M10.5 9 8 11l-1 3"/>'),
   transit:sv('<rect x="5" y="3" width="14" height="13" rx="2.5"/><path d="M5 11h14M8 20l1.5-4M16 20l-1.5-4"/><circle cx="8.8" cy="13.5" r=".8"/><circle cx="15.2" cy="13.5" r=".8"/>'),
@@ -295,7 +362,7 @@ let day="d24", flying=false, popup=null, markers=[], is3d=true, isSat=false;
 let markerEls={}, showAll=false, activeId=null;
 /* Where Sai is standing right now: index into the current day's stop list.  Kept in
    localStorage so closing Safari mid-day does not lose his place. */
-let atIdx=0, meMarker=null;
+let atIdx=0, meMarker=null, meEl=null;
 const PROGKEY="np-progress";
 let progress={};try{progress=JSON.parse(localStorage.getItem(PROGKEY))||{}}catch(e){}
 function saveProgress(){progress[day]=atIdx;try{localStorage.setItem(PROGKEY,JSON.stringify(progress))}catch(e){}}
@@ -356,10 +423,13 @@ map.on("load",()=>{
   map.addLayer({id:"route-cab",type:"line",source:"route",filter:["==",["get","m"],"cab"],
     layout:{"line-cap":"round"},paint:{"line-color":["get","c"],"line-width":3.6}});
   set3d(true);
+  setPinScale();
   selectDay(day,true);
 });
 map.on("error",e=>console.warn(e&&e.error));
 map.on("moveend",()=>applyTerrain());
+// Every frame of a pinch or a flyTo, so the pins grow and shrink with the map itself.
+map.on("zoom",setPinScale);
 map.on("dragstart",()=>stopFly());
 }catch(err){map=null;console.warn(err);}
 
@@ -422,7 +492,14 @@ function minsOf(mode,fromId,toId){const d=km(places[fromId],places[toId]);
 const gdir=(a,b,m)=>`https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=${m}`;
 const uberURL=(a,b)=>`https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${a.lat}&pickup[longitude]=${a.lng}&pickup[nickname]=${encodeURIComponent(a.n)}&dropoff[latitude]=${b.lat}&dropoff[longitude]=${b.lng}&dropoff[nickname]=${encodeURIComponent(b.n)}`;
 const lyftURL=(a,b)=>`https://lyft.com/ride?id=lyft&pickup[latitude]=${a.lat}&pickup[longitude]=${a.lng}&destination[latitude]=${b.lat}&destination[longitude]=${b.lng}`;
-function sheetPad(){const w=innerWidth;if(w>=900)return{top:110,bottom:60,left:440,right:60};const h=document.getElementById("sheet").getBoundingClientRect().height;return{top:110,bottom:h+30,left:40,right:60}}
+/* Padding keeps the day clear of the sheet and the top bar.  It is capped: a sheet
+   taller than ~42% of the screen leaves fitBounds almost no box to fit the day into,
+   and it answers by pulling the camera miles back ("Map cannot fit within canvas"). */
+function sheetPad(){
+  const w=innerWidth;if(w>=900)return{top:110,bottom:60,left:440,right:60};
+  const h=document.getElementById("sheet").getBoundingClientRect().height;
+  return{top:96,bottom:Math.min(h+24,Math.round(innerHeight*.42)),left:28,right:28};
+}
 function popHTML(id){
   const p=places[id];const[cn,cc]=CATS[p.cat];const ll=p.lat+","+p.lng;
   return `<div class="pop"><span class="cat" style="background:${cc}">${cn}</span><h4>${esc(p.n)}</h4>
@@ -467,12 +544,15 @@ function drawMarkers(){
     // stops), so they only appear when "All stops" is on.
     if(i<0&&!showAll)return;
     const col=p.cat==="stay"?"#c9b6ff":p.cat==="extra"?"#a89cc8":(p.v==="la"?CITYCOL.la:p.v==="trip"?CITYCOL.az:CITYCOL.lv);
-    const wrap=document.createElement("div");wrap.className="mkwrap";wrap.title=p.n;
+    const wrap=document.createElement("div");wrap.className="mkwrap"+(i<0?" dim":"");wrap.title=p.n;
+    // MapLibre owns the wrapper's transform, so the zoom scaling gets its own layer
+    // in between; scaling about the wrapper's centre leaves the pin's tip on the spot.
+    const sc=document.createElement("div");sc.className="mkscale";
     const el=document.createElement("div");
     el.className="mk"+(i<0?" dim":"")+(id===activeId?" active":"");
     el.style.setProperty("--c",col);el.style.setProperty("--cbg",tint(col,.74));
     el.innerHTML=PLACEICONS[id]||ICONS[p.cat]||ICONS.see;
-    wrap.appendChild(el);
+    sc.appendChild(el);wrap.appendChild(sc);
     wrap.addEventListener("click",e=>{e.stopPropagation();stopFly();focus(id)});
     markerEls[id]=el;
     markers.push(new maplibregl.Marker({element:wrap}).setLngLat([p.lng,p.lat]).addTo(map));
@@ -505,35 +585,91 @@ function selectDay(id,first){
 /* ---------- Where Sai is standing, and how he gets to the next stop ---------- */
 const ROUTEMODE={d25:"transit",d31:"cab",d30:"cab"};
 /* Legs behind him go grey, the leg he is on is gold, the rest keep the city colour. */
+/* Real roads, not straight hops.  A line between two pins cut diagonally through
+   the Bellagio; what Sai needs is the street he will actually be on.  OSRM's public
+   demo server returns that geometry, so each leg is drawn straight first — the day
+   always has a line, even with no signal — and then replaced by its road as the
+   answers come back.  Roads are cached in localStorage, so a day he has opened once
+   redraws with no network at all. */
+const OSRM="https://router.project-osrm.org/route/v1/driving/";
+const ROADKEY="np-roads";
+let roadCache={};try{roadCache=JSON.parse(localStorage.getItem(ROADKEY))||{}}catch(e){}
+const roadFailed=new Set();   // in memory only: a dropped request must not stick for good
+const roadKey=pts=>pts.map(p=>p[0].toFixed(4)+","+p[1].toFixed(4)).join(";");
+async function roadLine(pts){
+  const k=roadKey(pts);
+  if(roadCache[k])return roadCache[k];
+  if(roadFailed.has(k)||!window.fetch)return null;
+  const far=km({lat:pts[0][1],lng:pts[0][0]},{lat:pts[pts.length-1][1],lng:pts[pts.length-1][0]})>40;
+  const url=OSRM+pts.map(p=>p[0]+","+p[1]).join(";")+
+    "?overview="+(far?"simplified":"full")+"&geometries=geojson";
+  try{
+    const r=await fetch(url);
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const j=await r.json();
+    const c=j.routes&&j.routes[0]&&j.routes[0].geometry&&j.routes[0].geometry.coordinates;
+    if(!c||c.length<2)throw new Error("no geometry");
+    // 5 decimals is about a metre; the raw answer is twice the characters for no
+    // visible difference, and this all has to fit in localStorage on a phone.
+    roadCache[k]=c.map(([x,y])=>[+x.toFixed(5),+y.toFixed(5)]);
+    try{localStorage.setItem(ROADKEY,JSON.stringify(roadCache))}catch(e){}
+    return roadCache[k];
+  }catch(e){roadFailed.add(k);console.warn("road route unavailable, keeping the direct line:",e.message);return null}
+}
+/* One pass per day; switching days bumps the token so a late answer for the old day
+   cannot paint itself over the new one. */
+let roadToken=0;
+async function addRoads(feats,ends){
+  const tok=++roadToken;
+  for(let i=0;i<feats.length;i++){
+    const c=await roadLine(ends[i]);
+    if(tok!==roadToken)return;
+    if(!c)continue;
+    feats[i].geometry.coordinates=c;
+    if(map&&map.getSource("route"))map.getSource("route").setData({type:"FeatureCollection",features:feats});
+  }
+}
 function drawRoute(){
   if(!map||!map.getSource("route"))return;
   const D=DAYS.find(d=>d.id===day),stops=stopsOf(D),legs=legsOf(D),c=CITYCOL[D.city];
-  const feats=[];
+  const feats=[],ends=[];
   for(let i=0;i<stops.length-1;i++){
     const a=places[stops[i]],b=places[stops[i+1]];
     const m=modeOf(legs[i+1],stops[i],stops[i+1]);
     const st=i<atIdx?"done":i===atIdx?"now":"next";
+    const pts=[[a.lng,a.lat],[b.lng,b.lat]];
     feats.push({type:"Feature",properties:{m,st,
       c:st==="done"?"#5b4f85":st==="now"?"#ffd166":c},
-      geometry:{type:"LineString",coordinates:[[a.lng,a.lat],[b.lng,b.lat]]}});
+      geometry:{type:"LineString",coordinates:pts}});
+    ends.push(pts);
   }
-  if(ROUTES[day])feats.push({type:"Feature",properties:{m:ROUTEMODE[day]||"transit",st:"next",c:"#c9b6ff"},
-    geometry:{type:"LineString",coordinates:ROUTES[day].map(([a,b])=>[b,a])}});
+  if(ROUTES[day]){
+    const pts=ROUTES[day].map(([a,b])=>[b,a]);
+    feats.push({type:"Feature",properties:{m:ROUTEMODE[day]||"transit",st:"next",c:"#c9b6ff"},
+      geometry:{type:"LineString",coordinates:pts}});
+    ends.push(pts);
+  }
   map.getSource("route").setData({type:"FeatureCollection",features:feats});
+  if(feats.length)addRoads(feats,ends);
 }
 function placeMe(){
   if(!map)return;
-  const stops=stopsOf(DAYS.find(d=>d.id===day));
-  if(!stops.length){if(meMarker){meMarker.remove();meMarker=null}return}
-  const p=places[stops[Math.min(atIdx,stops.length-1)]];
+  const D=DAYS.find(d=>d.id===day),stops=stopsOf(D),legs=legsOf(D);
+  if(!stops.length){if(meMarker){meMarker.remove();meMarker=null;meEl=null}return}
+  const i=Math.min(atIdx,stops.length-1),p=places[stops[i]];
   if(!meMarker){
     const w=document.createElement("div");w.className="mewrap";
-    w.innerHTML='<div class="mering"></div><div class="meshadow"></div><div class="me">'+PERSON+'</div>';
+    w.innerHTML='<div class="mescale"><div class="mering"></div><div class="me">'+FIGURE+'</div></div>';
     // anchor:"bottom" puts his feet on the coordinate instead of his waist, and the
     // nudge to the right keeps him from standing inside the stop's own pin.
-    meMarker=new maplibregl.Marker({element:w,anchor:"bottom",offset:[17,2]}).setLngLat([p.lng,p.lat]).addTo(map);
+    meEl=w;
+    meMarker=new maplibregl.Marker({element:w,anchor:"bottom",offset:[25,2]}).setLngLat([p.lng,p.lat]).addTo(map);
     w.setAttribute("aria-label","You are here");
+    setPinScale();
   }else meMarker.setLngLat([p.lng,p.lat]);
+  // He walks on the spot when the next leg is a walk, and stands still otherwise.
+  const walk=i<stops.length-1&&modeOf(legs[i+1],stops[i],stops[i+1])==="walk";
+  if(meEl)meEl.classList.toggle("walking",walk);
 }
 function setAt(i,fly){
   const stops=stopsOf(DAYS.find(d=>d.id===day));if(!stops.length)return;
@@ -584,10 +720,53 @@ function stopFly(){if(!flying)return;flying=false;flyToken++;if(map)map.stop();u
 function updateFlyBtn(){const b=document.getElementById("fly");if(b){b.textContent=flying?"■ Stop tour":"▶ Fly this day";b.classList.toggle("stop",flying)}}
 
 /* ---------- Sheet ---------- */
+/* The sheet is dragged, not just tapped: a finger on the handle moves it frame by
+   frame and it settles on the nearest of three heights — peeking at the bottom, half
+   the screen, or nearly full.  A tap on the handle still cycles through the three, so
+   the old behaviour is intact.  Heights are written to --sheet-h on <html> because the
+   legend is positioned off the same variable and has to move with it. */
 const sheet=document.getElementById("sheet");
-function setSheet(s){sheet.classList.remove("big","small");if(s)sheet.classList.add(s)}
-document.getElementById("grab").onclick=()=>{
-  if(sheet.classList.contains("small"))setSheet("");else if(sheet.classList.contains("big"))setSheet("small");else setSheet("big")};
+const grab=document.getElementById("grab");
+const root=document.documentElement;
+const SNAPMIN=56;
+function snaps(){const h=innerHeight;return[Math.min(132,Math.round(h*.17)),Math.round(h*.44),Math.round(h*.86)]}
+function sheetMax(){return innerHeight-74}
+let snapIdx=1;
+function applySnap(i){
+  snapIdx=Math.max(0,Math.min(2,i));
+  sheet.classList.remove("dragging");
+  root.style.setProperty("--sheet-h",Math.min(sheetMax(),snaps()[snapIdx])+"px");
+  sheet.classList.toggle("small",snapIdx===0);
+  sheet.classList.toggle("big",snapIdx===2);
+}
+function setSheet(s){applySnap(s==="small"?0:s==="big"?2:1)}
+applySnap(1);
+addEventListener("resize",()=>applySnap(snapIdx));
+let drag=null;
+grab.addEventListener("pointerdown",e=>{
+  if(innerWidth>=900)return;
+  drag={y:e.clientY,h:sheet.getBoundingClientRect().height,moved:0};
+  sheet.classList.add("dragging");
+  try{grab.setPointerCapture(e.pointerId)}catch(err){}
+});
+grab.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  const dy=e.clientY-drag.y;
+  drag.moved=Math.max(drag.moved,Math.abs(dy));
+  root.style.setProperty("--sheet-h",Math.max(SNAPMIN,Math.min(sheetMax(),drag.h-dy))+"px");
+  e.preventDefault();
+});
+function endDrag(){
+  if(!drag)return;
+  const h=sheet.getBoundingClientRect().height,tap=drag.moved<8;
+  drag=null;
+  if(tap){applySnap(snapIdx>=2?0:snapIdx+1);return}
+  const s=snaps();let best=0;
+  s.forEach((v,i)=>{if(Math.abs(v-h)<Math.abs(s[best]-h))best=i});
+  applySnap(best);
+}
+grab.addEventListener("pointerup",endDrag);
+grab.addEventListener("pointercancel",endDrag);
 let tab="days";
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{tab=t.dataset.t;document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));render();if(sheet.classList.contains("small"))setSheet("")});
 

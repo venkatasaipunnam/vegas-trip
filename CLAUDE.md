@@ -39,9 +39,43 @@ city views, and it must not be switched on mid-flight:
 - Nature stops also need framing: zoom 12.4 / bearing -35, or the camera faces the flat
   plateau behind the rim instead of the canyon.
 
+## Pins, the sheet and the route (fixed Oct 22, 2026, second pass)
+- **Pins were in the wrong place.** `.mkwrap`/`.mewrap` carried `position:relative`, and
+  this page's `<style>` loads after `maplibre-gl.css`, so it beat
+  `.maplibregl-marker{position:absolute}` and every marker was laid out in normal flow:
+  each pin sat up to ~230px *below* its real location, the drift growing with the number
+  of markers. They are `position:absolute;top:0;left:0` now, and each pin's centre has
+  been checked against `map.project()` for every stop of a day (dx = dy = 0).
+- **Pins scale with zoom.** `--mks` on `<html>` is rewritten from `map.on("zoom")`
+  (`pinScale`: 0.42 at z≤9.5 up to 1.12 at z≥16.5). The scale lives on its own
+  `.mkscale` layer between MapLibre's transform and the pin, because the pin's tip lands
+  exactly on the wrapper's centre, so scaling about 50%/50% keeps the tip on its
+  coordinate. The figure scales off the same variable about its feet, and its sideways
+  offset (`setOffset`) scales with it.
+- **The sheet is dragged, not just tapped.** A pointer drag on the handle moves it frame
+  by frame (`.dragging` turns the transition off) and it settles on the nearest of three
+  heights: ~17% of the screen (peek), 44%, 86%. A tap still cycles the three. The height
+  is written to `--sheet-h` on `<html>`, because the legend is positioned off the same
+  variable and has to move with it. Disabled at ≥900px, where the sheet is a side panel.
+- **`sheetPad` is capped** at 42% of the viewport height. An uncapped sheet left
+  `fitBounds` almost no box and MapLibre answered by pulling the camera miles back
+  ("Map cannot fit within canvas").
+- **Legs follow real roads.** OSRM's public demo server
+  (`router.project-osrm.org/route/v1/driving/`) returns the geometry for each leg and for
+  the `ROUTES` polylines. Each day is drawn straight first and the roads replace it as
+  answers arrive, so a dead network just leaves the old direct lines. Answers are cached
+  in `localStorage["np-roads"]`, rounded to 5 decimals (~18 KB for a Vegas day); a failed
+  leg is remembered in memory only, so a reload retries it.
+
 ## Standing figure, legs and travel mode
-- A green figure (`.mewrap`, marker `anchor:"bottom"`, nudged 17px right of the stop's pin)
-  stands on the stop Sai is at right now. `atIdx` is his index into the day's stop list and
+- A green figure (`.mewrap`, marker `anchor:"bottom"`, nudged 25px × the zoom scale right
+  of the stop's pin, `z-index:3` so the pin cannot cover him) stands on the stop Sai is at
+  right now. He is an actual little person — head, torso, two arms, two legs, each limb its
+  own group — drawn twice, a dark ink pass under a green skin pass, which is what keeps him
+  readable on satellite imagery. He breathes and sways when standing and breaks into a
+  stride (`.walking`, arms opposite legs) when the next leg is a walk. The two passes are
+  duplicated markup rather than `<use>` of a `<defs>` group, because animating referenced
+  content is not reliable in WebKit. `atIdx` is his index into the day's stop list and
   is saved in `localStorage["np-progress"]` per day, so closing Safari mid-day keeps his place.
 - The day line is no longer one dashed polyline: `drawRoute()` emits one feature per leg with
   `m` (walk | transit | cab) and `st` (done | now | next). `line-dasharray` takes no
