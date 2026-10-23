@@ -84,6 +84,11 @@ The landing page (`src/pages/Explore.tsx`) takes a **From** and a **To** —
 fix, tapping any pin sets To, and typing searches the trip's own stops first (instant,
 offline, verified coordinates) and then Photon (`src/lib/search.ts`). With both ends set
 it asks how he wants to travel, and each mode does what suits it:
+- **A pin says what it is.** Hovering one shows its name (`.mklabel`, only under
+  `@media (hover:hover)`); tapping one opens a popup with the name, its category and two
+  buttons — **Start here** and **Go here**. Tapping used to set the destination outright,
+  which named nothing and overrode the end he was actually filling in: tap a pin while
+  setting "From" and it landed in "To".
 - **Walk / Drive** are routed live in the browser and drawn on the map with the distance,
   the time and real turn-by-turn (`src/lib/route.ts`: Valhalla, which has a pedestrian
   profile, falling back to OSRM for driving only — OSRM's public server has no walking).

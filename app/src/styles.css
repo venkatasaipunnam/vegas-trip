@@ -357,3 +357,18 @@ h3{margin:14px 0 8px;font-size:15px}
   .finder{right:auto;width:400px;max-height:100vh;background:none;padding:14px}
   .finder .field,.finder .result{box-shadow:0 10px 30px rgba(0,0,0,.45)}
 }
+
+/* The pin's name.  Shown on hover where there is a pointer; on a touch screen the tap
+   opens the popup instead, which names the place and asks which end of the journey it
+   is.  It sits outside .mkscale so the zoom scaling never shrinks the text. */
+.mklabel{position:absolute;left:50%;top:-6px;transform:translate(-50%,-100%);white-space:nowrap;
+  padding:4px 8px;border-radius:8px;background:var(--panel-solid);border:1px solid var(--line);
+  color:var(--sand);font:800 11px var(--f-body);box-shadow:0 6px 16px rgba(0,0,0,.45);
+  opacity:0;pointer-events:none;transition:opacity .13s ease;z-index:4}
+@media(hover:hover){.mkwrap:hover .mklabel{opacity:1}}
+.mkwrap.open .mklabel{opacity:0}
+.pop.pick h4{margin:5px 0 9px}
+.pop.pick .btns{margin:0}
+/* The two choices share the popup's own button shapes; only the element differs. */
+.pop.pick .btns button{flex:1;padding:9px 10px;border-radius:9px;border:0;cursor:pointer;
+  color:var(--night);font:800 12px var(--f-body)}

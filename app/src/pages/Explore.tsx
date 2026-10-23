@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Map, {
-  AttributionControl, Layer, Marker, NavigationControl, Source, type MapRef,
+  AttributionControl, Layer, Marker, NavigationControl, Popup, Source, type MapRef,
 } from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
-import { CITYCOL, places } from "../data";
-import { dirUrl, kmLabel, rideUrl } from "../lib/geo";
+import { CATS, CITYCOL, places } from "../data";
+import { dirUrl, kmLabel, minsLabel, rideUrl } from "../lib/geo";
 import { liveRoute, type LiveRoute, type Point } from "../lib/route";
 import type { Hit } from "../lib/search";
 import { ICONS, PLACEICONS } from "../map/pinIcons";
@@ -43,6 +43,11 @@ export default function Explore() {
   const [err, setErr] = useState<string | null>(null);
   const [live, setLive] = useState<{ lat: number; lng: number; acc: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  /** The pin he just tapped.  Tapping used to set the destination outright, which was
+   *  wrong twice over: it never said which place had been chosen, and it overrode the
+   *  end he was actually filling in — tap a pin while setting "From" and it landed in
+   *  "To".  Now the tap names the place and he says which end it is. */
+  const [picked, setPicked] = useState<string | null>(null);
 
   // Watch, not a one-shot fix: he is walking while he reads this.
   useEffect(() => {
@@ -157,20 +162,48 @@ export default function Explore() {
             return (
               <Marker key={id} longitude={p.lng} latitude={p.lat} anchor="center">
                 <div
-                  className="mkwrap" title={p.n} aria-label={p.n}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTo({ lat: p.lat, lng: p.lng, name: p.n });
-                  }}
+                  className={`mkwrap${picked === id ? " open" : ""}`} aria-label={p.n}
+                  onClick={(e) => { e.stopPropagation(); setPicked(id); }}
                 >
                   <div className="mkscale">
                     <div className="mk" style={{ ["--c" as string]: col, ["--cbg" as string]: tint(col, 0.74) }}
                       dangerouslySetInnerHTML={{ __html: PLACEICONS[id] || ICONS[p.cat] || ICONS.see }} />
                   </div>
+                  {/* The name, on hover with a mouse.  An icon on its own says nothing:
+                      a cocktail glass is not "Bellagio Fountains". */}
+                  <span className="mklabel">{p.n}</span>
                 </div>
               </Marker>
             );
           })}
+
+          {picked && places[picked] && (
+            <Popup
+              longitude={places[picked].lng} latitude={places[picked].lat}
+              anchor="bottom" offset={24} closeOnClick={false} maxWidth="250px"
+              onClose={() => setPicked(null)}
+            >
+              <div className="pop pick">
+                <span className="cat" style={{ background: CATS[places[picked].cat][1] }}>
+                  {CATS[places[picked].cat][0]}
+                </span>
+                <h4>{places[picked].n}</h4>
+                <div className="btns">
+                  <button className="b1" onClick={() => {
+                    const p = places[picked];
+                    touched.current = true;
+                    setFrom({ lat: p.lat, lng: p.lng, name: p.n });
+                    setPicked(null);
+                  }}>◉ Start here</button>
+                  <button className="b2" onClick={() => {
+                    const p = places[picked];
+                    setTo({ lat: p.lat, lng: p.lng, name: p.n });
+                    setPicked(null);
+                  }}>▲ Go here</button>
+                </div>
+              </div>
+            </Popup>
+          )}
 
           {live && (
             <Marker longitude={live.lng} latitude={live.lat} anchor="center">
@@ -222,7 +255,7 @@ export default function Explore() {
             {(mode === "walk" || mode === "car") && route && (
               <>
                 <p className="rsum">
-                  <b>{route.min} min</b> · {kmLabel(route.km)} km
+                  <b>{minsLabel(route.min)}</b> · {kmLabel(route.km)} km
                   <span>{mode === "walk" ? "on foot" : "driving"}</span>
                 </p>
                 {!!route.steps.length && (

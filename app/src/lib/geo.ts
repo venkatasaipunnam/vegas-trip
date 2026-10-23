@@ -32,6 +32,16 @@ export const headingOf = (a: Place, b: Place) =>
 
 export const kmLabel = (d: number) => (d < 10 ? d.toFixed(1) : String(Math.round(d)));
 
+/** A duration as a person says it.  "280 min" is not something anyone reads as four and
+ *  three quarter hours, and the Grand Canyon drive is 280 minutes. */
+export function minsLabel(min: number) {
+  const m = Math.max(1, Math.round(min));
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const rest = m % 60;
+  return rest ? `${h} hr ${rest} min` : `${h} hr`;
+}
+
 /** Fallback when a leg has no pre-computed route: straight-line time at a plain speed. */
 export function roughMins(mode: string, a: Place, b: Place) {
   const d = km(a, b);
