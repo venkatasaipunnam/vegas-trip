@@ -2,6 +2,7 @@ import { CITYCOL, DAYS, dayById, places, stopsOf } from "../data";
 import { atOf, useTrip } from "../store";
 import { amap, gmap, gearth } from "../lib/geo";
 import NextBar from "./NextBar";
+import PlanPicker from "./PlanPicker";
 import type { Place, Step } from "../types";
 
 const sideCol = (p: Place) => CITYCOL[p.v === "la" ? "la" : p.v === "trip" ? "az" : "lv"];
@@ -32,6 +33,8 @@ export default function Days() {
 
   return (
     <>
+      <PlanPicker current="trip" />
+
       <div className="chips">
         {DAYS.map((d) => (
           <button key={d.id} className="chip" aria-pressed={d.id === day} onClick={() => selectDay(d.id)}>

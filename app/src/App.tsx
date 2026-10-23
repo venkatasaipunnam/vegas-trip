@@ -4,6 +4,7 @@ import Trip from "./pages/Trip";
 import Login from "./pages/Login";
 import Plans from "./pages/Plans";
 import PlanEditor from "./pages/PlanEditor";
+import PlanView from "./pages/PlanView";
 import RequireUser from "./ui/RequireUser";
 
 /** Two pages: the map you arrive on, and the plan.
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/plans" element={<Plans />} />
         <Route path="/plans/:id" element={<PlanEditor />} />
+        <Route path="/plans/:id/view" element={<PlanView />} />
         {/* Anything else is a mistyped link, not an error worth a page of its own. */}
         <Route path="*" element={<Explore />} />
       </Routes>

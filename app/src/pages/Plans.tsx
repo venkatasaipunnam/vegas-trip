@@ -67,11 +67,12 @@ export default function Plans() {
       <ul className="plans">
         {plans.map((p) => (
           <li key={p.id}>
-            <Link to={`/plans/${p.id}`}>
+            <Link to={`/plans/${p.id}/view`}>
               <b>{p.name}</b>
               <span>{p.days.length} day{p.days.length === 1 ? "" : "s"} · {countStops(p)} stops · saved {when(p.updated)}</span>
             </Link>
             <div className="pacts">
+              <Link to={`/plans/${p.id}`}>Edit</Link>
               <button onClick={() => { duplicatePlan(user, p.id); refresh(user); }}>Copy</button>
               <button className="del" onClick={() => {
                 if (confirm(`Delete “${p.name}”? This cannot be undone.`)) {

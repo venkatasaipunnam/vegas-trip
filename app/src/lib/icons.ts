@@ -63,6 +63,12 @@ export const ICON_COLOUR: Record<IconKey, string> = {
   transport: "#a89cc8", airport: "#a89cc8", walk: "#5ee39a", pin: "#f3e7d3",
 };
 
+/** A pin's soft fill: the icon's own colour, faded. */
+export const tint = (hex: string, a: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+
 export const iconSvg = (k: IconKey) =>
   `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON_PATH[k] ?? ICON_PATH.pin}</svg>`;
 

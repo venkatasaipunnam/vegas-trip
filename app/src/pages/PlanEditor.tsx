@@ -7,71 +7,15 @@ import maplibregl from "maplibre-gl";
 import type { FeatureCollection, LineString } from "geojson";
 import { currentUser } from "../lib/accounts";
 import { getPlan, savePlan, uid, type Plan, type PlanDay, type Stop } from "../lib/plans";
-import { ICON_COLOUR, ICON_GROUPS, ICON_LABEL, iconSvg, type IconKey } from "../lib/icons";
+import { ICON_COLOUR, ICON_GROUPS, ICON_LABEL, iconSvg, tint, type IconKey } from "../lib/icons";
 import { geocode, tripHits, type Hit } from "../lib/search";
 import { VENUE_ICON, showVenuesEarlier, venueAt } from "../lib/poi";
-import { liveRoute } from "../lib/route";
+import { MODE_COLOUR, legKeyOf, usePlanRoads } from "../lib/planroads";
 import { ModeIcon } from "../ui/Icons";
 import { arrowImage } from "../map/MapView";
 
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const MODES: Stop["mode"][] = ["walk", "transit", "cab"];
-const MODE_COLOUR: Record<string, string> = { walk: "#5ee39a", transit: "#3fe0e8", cab: "#ffb547" };
-const ROADS = "np-planroads";
-
-/** A plan he builds himself deserves the same line the Vegas plan gets: the road he will
- *  actually be on, not a straight hop between pins.  The trip's own legs are routed at
- *  build time, which cannot work here — these places did not exist when the app was
- *  built — so each leg is routed in the browser once and kept in localStorage, and the
- *  straight line stays until its road arrives.  Transit has no free router, so a transit
- *  leg borrows the driving line: the Deuce does follow the road. */
-function usePlanRoads(stops: Stop[]) {
-  const [roads, setRoads] = useState<Record<string, [number, number][]>>(() => {
-    try { return JSON.parse(localStorage.getItem(ROADS) || "{}"); } catch { return {}; }
-  });
-
-  useEffect(() => {
-    const ac = new AbortController();
-    (async () => {
-      const found: Record<string, [number, number][]> = {};
-      for (let i = 0; i < stops.length - 1; i++) {
-        const a = stops[i], b = stops[i + 1];
-        const mode = b.mode ?? "walk";
-        const k = `${a.lat},${a.lng}>${b.lat},${b.lng}:${mode}`;
-        if (roads[k] || found[k]) continue;
-        try {
-          const r = await liveRoute(
-            { lat: a.lat, lng: a.lng, name: a.name },
-            { lat: b.lat, lng: b.lng, name: b.name },
-            mode === "walk" ? "walk" : "car",
-            ac.signal,
-          );
-          found[k] = r.geom;
-        } catch {
-          if (ac.signal.aborted) return;   // nothing to do: the straight line stays
-        }
-      }
-      if (ac.signal.aborted || !Object.keys(found).length) return;
-      setRoads((prev) => {
-        const next = { ...prev, ...found };
-        try { localStorage.setItem(ROADS, JSON.stringify(next)); } catch { /* full: keep in memory */ }
-        return next;
-      });
-    })();
-    return () => ac.abort();
-  }, [stops]);   // eslint-disable-line react-hooks/exhaustive-deps
-
-  return roads;
-}
-
-const tint = (hex: string, a: number) => {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-};
-
-/** Building a plan.  The map is the canvas: a stop comes either from searching (his own
- *  trip's places first, then anywhere) or from dropping a pin wherever he likes, which
- *  is the only way to put "the taco place by the hotel" on a map. */
 export default function PlanEditor() {
   const { id = "" } = useParams();
   const nav = useNavigate();
@@ -134,13 +78,13 @@ export default function PlanEditor() {
     for (let i = 0; i < stops.length - 1; i++) {
       const a = stops[i], b = stops[i + 1];
       const mode = b.mode ?? "walk";
-      const road = roads[`${a.lat},${a.lng}>${b.lat},${b.lng}:${mode}`];
+      const road = roads[legKeyOf(a, b)];
       features.push({
         type: "Feature",
         properties: { m: mode, c: MODE_COLOUR[mode] },
         geometry: {
           type: "LineString",
-          coordinates: road?.length ? road : [[a.lng, a.lat], [b.lng, b.lat]],
+          coordinates: road?.geom?.length ? road.geom : [[a.lng, a.lat], [b.lng, b.lat]],
         },
       });
     }
@@ -286,7 +230,10 @@ export default function PlanEditor() {
               onChange={(e) => edit((p) => { p.name = e.target.value; return p; })} />
             <p className="sub">{saved ? "Saved on this device" : "Saving…"}</p>
           </div>
-          <Link className="btn ghost" to="/plans">Done</Link>
+          <span className="headacts">
+            <Link className="btn ghost" to={`/plans/${id}/view`}>View</Link>
+            <Link className="btn ghost" to="/plans">Done</Link>
+          </span>
         </div>
 
         <div className="body">

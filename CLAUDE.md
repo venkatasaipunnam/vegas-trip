@@ -90,6 +90,14 @@ put "the taco place by the hotel" on a map. Days are added, renamed, dated and r
 stops are reordered with ↑/↓; everything autosaves after 600 ms, because he is editing a
 plan rather than filling in a form.
 
+`/plans/:id/view` reads a plan the way `/trip` reads the Vegas one: only the leg he is on
+drawn on the road in blue with arrows, the figure standing where he is, numbered pins,
+popups carrying each stop's what-to-see and tip, and a next-leg bar with the mode,
+distance, heading, time, Google/Uber/Lyft and "✓ I'm here" (his place is kept per plan and
+day in `np-planprogress`). A **plan picker** sits at the top of both that page and `/trip`,
+so the Vegas itinerary is simply one entry in the list. Legs are routed in the browser and
+cached by `src/lib/planroads.ts`, which both the editor and the viewer share.
+
 **The accounts are profiles on the device, not security, and the page says so.** The site
 is static — Vercel serves files, there is nothing to authenticate against. Passwords are
 stretched with PBKDF2-SHA256 (120k iterations, per-account salt) and only the digest is
